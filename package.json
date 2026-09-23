@@ -1,0 +1,50 @@
+{
+  "name": "claimguard",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm test",
+    "db:indexes": "tsx --env-file=.env scripts/create-indexes.ts",
+    "env:setup": "tsx --env-file=.env scripts/setup-local-env.ts",
+    "contact-sheet": "tsx --env-file=.env scripts/contact-sheet.ts",
+    "check-mapping": "tsx --env-file=.env scripts/check-mapping.ts",
+    "mapping-doc": "tsx --env-file=.env scripts/mapping-doc.ts",
+    "seed": "tsx --env-file=.env scripts/seed.ts",
+    "seed:dry-run": "tsx --env-file=.env scripts/seed.ts --dry-run",
+    "validate-vision": "tsx --env-file=.env scripts/validate-vision.ts",
+    "lookup": "tsx --env-file=.env scripts/lookup.ts",
+    "check-prefill": "tsx --env-file=.env scripts/check-prefill.ts",
+    "reset-user-data": "tsx --env-file=.env scripts/reset-user-data.ts",
+    "reset-user-data:dry-run": "tsx --env-file=.env scripts/reset-user-data.ts --dry-run"
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "mammoth": "1.12.3",
+    "mongodb": "7.6.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sharp": "0.35.4",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "daisyui": "5.7.43",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  }
+}

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: corporate --default;
+  logs: false;
+}
+
+/* Preserve the built-in theme, with stronger contrast for small status/button text. */
+@plugin "daisyui/theme" {
+  name: "corporate";
+  default: true;
+  --color-primary: #0065a1;
+  --color-primary-content: #ffffff;
+  --color-success: #007b36;
+  --color-success-content: #ffffff;
+  --color-error: #b42332;
+  --color-error-content: #ffffff;
+}

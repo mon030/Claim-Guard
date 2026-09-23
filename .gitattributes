@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Preserve the team's supplied source bytes across Windows/Linux checkouts.
+lib/guardrail.ts -text
+lib/guardrail.config.ts -text
+lib/guardrail.test.ts -text
+data/claims.json -text

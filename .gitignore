@@ -78,6 +78,8 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+env_setup.md
+tmp/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -85,6 +87,7 @@ web_modules/
 
 # Next.js build output
 .next
+next-env.d.ts
 out
 
 # Nuxt.js build / generate output
@@ -134,3 +137,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+/ClaimGuard_Photos_v2
+/.npm-cache
+*.docx
+/tests
