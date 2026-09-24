@@ -1,10 +1,14 @@
-# ClaimGuard — Phases 2–5
+# ClaimGuard — Phases 2–5.5
 
 BUAN 3301, AI in Business. Fictional company: Meridian Insurance.
 
 Phase 2 supplies the server-side libraries, typed MongoDB records, optional LLM helpers, and tests. Phase 3 adds the offline contact sheet, mapping validation/documentation, idempotent photo seeding, cached Vision calibration and single-photo lookup, Form prefill checking, and scoped demo reset. Phase 4 adds the lookup, thumbnail, and decision APIs. Phase 5 adds the responsive, single-page end-user app, protected claim creation/listing, browser-side ZIP/Word imports, and optional explicitly requested LLM assistance. Start with `npm run contact-sheet`; the before/after mapping sequence is in [docs/PHASE3.md](docs/PHASE3.md). API contracts are in [docs/PHASE4.md](docs/PHASE4.md); the UI, its contract extensions, and verification details are in [docs/PHASE5.md](docs/PHASE5.md). No mappings or live Vision results are fabricated.
 
 ## Run
+
+Phase 5.5 adds the official Vision client/parser fix, bounded MongoDB recovery, searchable claims, printable results, client-only reset, amount validation and queued toasts. See [docs/PHASE5.5.md](docs/PHASE5.5.md) for the actual IMG-026 diagnosis, file-by-file changes, and verification boundaries.
+
+The current interface uses a rounded caramellatte theme and a single-column claim picker. Thumbnail previews discard late responses when the selected claim changes, avoiding development-console AbortErrors. The shield icon is provided as `app/favicon.ico` (16/32/48 px) and `app/icon.svg`; regenerate the ICO after editing the SVG with `npm run favicon:generate`.
 
 Use Node.js 22.12.0 or newer (verified locally on 22.12.0), then:
 
@@ -34,6 +38,9 @@ Resolved from the npm registry's stable `latest` tags on 2026-09-21 and all 18 p
 | react | 19.3.0 |
 | react-dom | 19.3.0 |
 | mongodb | 7.6.0 |
+| @google-cloud/vision | 6.1.0 |
+| p-retry | 8.0.1 |
+| downshift | 9.4.0 |
 | sharp | 0.35.4 |
 | fflate | 0.8.3 |
 | mammoth | 1.12.3 |
@@ -49,7 +56,7 @@ Resolved from the npm registry's stable `latest` tags on 2026-09-21 and all 18 p
 | @types/react | 19.3.0 |
 | @types/react-dom | 19.3.0 |
 
-The installed Next.js and daisyUI skills informed the App Router structure, component markup, and Tailwind v4 CSS-based setup. Context7 verified sharp resize/raw output, MongoDB client/index options, Zod validation, compatible chat completions, Vitest mocking, fflate streaming decompression, and Mammoth browser text extraction APIs. Primary references are in [docs/API_NOTES.md](docs/API_NOTES.md).
+Phase 5.5 adds the three exact pins above, verified against npm stable tags. Existing pins are unchanged. Context7, official Google documentation and installed declarations/source verified their APIs. No PDF/toast dependency was added. The installed Next.js and daisyUI skills informed App Router structure, component markup and CSS-based setup. Primary references are in [docs/API_NOTES.md](docs/API_NOTES.md).
 
 ## Modules and contracts
 
@@ -57,11 +64,11 @@ The installed Next.js and daisyUI skills informed the App Router structure, comp
 - `data/claims.json` is the exact supplied file. On 2026-09-23 the user supplied the group's manual mapping; `data/mapping.json` now contains two filenames for each of the 18 claims, with all 36 photos used once. The associations were re-seeded successfully and documented in `docs/MAPPING.md`. No module inferred them from filenames, narratives, or an LLM.
 - `lib/env.ts` reads configuration only when called. `getEnv()` validates everything; integration-specific getters validate only that integration. Error messages identify variables without printing their values. Blank optional values count as absent. A partial LLM group throws a readable error.
 - `lib/hash.ts` exposes `sha256(buffer)`, `dhash(buffer)`, and the original `hammingDistanceHex(a,b)` helper. SHA-256 uses original bytes. dHash normalizes EXIF orientation, flattens alpha on white, converts to grayscale, resizes the full image to 9×8 with `fit: "fill"` and `lanczos3`, and compares adjacent horizontal pixels. Left greater than right is 1; row-major, most-significant bit first; always 16 lowercase hex characters. The original Hamming helper is intentionally unchanged; callers must supply validated hexadecimal hashes.
-- `lib/vision.ts` exposes `detectWeb(buffer)`, `extractVisionResult(response)`, and `toWebCheck(result, source)`. It sends only base64 content to Google Vision `images:annotate`, requesting `WEB_DETECTION` with `maxResults: 50`. The key is in a header, not a URL. The initial attempt and one HTTP-5xx retry share an eight-second AbortController deadline, including body reading. HTTP 4xx, quota errors, annotation errors, malformed results, and network errors are not retried. A missing Web Detection object fails; an explicit empty object is a valid completed lookup. Errors never become successful zero-match results. The caller may use cached evidence or explicitly pass `null` to `toWebCheck` to invoke the supplied unavailable-check policy.
+- `lib/vision.ts` keeps the same public functions/output. Official `v1.ImageAnnotatorClient({apiKey, fallback: true})` owns transport/authentication, sending only base64 content, WEB_DETECTION, maxResults 50. SDK initialization, quota reservation and one HTTP-5xx retry share an eight-second deadline. GAX receives the remaining timeout and `retry: null`; p-retry limits retries while accounting for every paid attempt. Successful empty/minimal annotations and `error: null` are valid. Missing batch entries and actual per-image errors fail. Opaque non-web image identifiers are counted but excluded from links/domains. Server logs preserve real error code/status/message with credential redaction. No service account is needed.
 - `lib/llm/client.ts` is the only provider boundary. It sends `{model, messages, response_format: {type: "json_object"}}` to the configured base plus `/chat/completions`. Runtime Zod validation enforces the output contract. Disabled LLM, timeout, refusal, truncation, invalid JSON/schema, or HTTP failures return `null`. No SDK, provider-specific model, or tool calling is assumed.
 - `lib/llm/prompts.ts` provides exactly three uses: identity extraction, narrative similarity, and adjuster explanation, each with a deterministic fallback. Every similarity result includes the deterministic Jaccard score; LLM prose is separate from the fixed guardrail decision. Full prompts and the authorized export note are in [docs/PROMPTS.md](docs/PROMPTS.md).
 - `lib/narrative-similarity.ts` implements deterministic token-set Jaccard with Unicode normalization, lowercase words, a fixed stopword list, and retained negations/numbers. Empty or stopword-only text returns 0. Its score is similarity, not fraud probability.
-- `lib/models.ts` builds its record types from the supplied evidence/result types. `lib/mongodb.ts` provides a globally cached client, small serverless pool, typed collections, and index setup. Failed connections are cleared so later requests can retry.
+- `lib/models.ts` builds on supplied types. `lib/mongodb.ts` uses a typed development-global client and production module cache, with explicit `retryReads`/`retryWrites`. Failed connections clear the cache. API operations use bounded p-retry recovery; quota increments and external calls are never replayed by that wrapper.
 
 ## Vision counting convention
 
@@ -69,7 +76,7 @@ The installed Next.js and daisyUI skills informed the App Router structure, comp
 
 `stockDomainMatchCount` counts full-match **image URL hosts** matching `STOCK_DOMAIN_ALLOWLIST`, including true subdomains. `nonStockFullMatchCount` is the remaining full-match count. Neither page matches nor visually similar matches are added to that count. The current list is used verbatim; no CDN aliases are silently added. Hosts such as `images.pexels.com` match `pexels.com`; `pexels.com.evil.example` does not. A page hosting a hotlinked stock image can have a different host from the image URL; these counts classify the image host only, and page domains remain visible for review. This is an explicit extraction convention to assess with the real photo set in Phase 3.
 
-`pages` preserves Google's ordering and includes the first 10 URL/domain pairs, while `pageCount` counts the whole array. `domains` deduplicates hosts from all full, partial, similar, and page results, with non-stock full-match hosts first. Entities are sorted by Google's supplied score and capped at five; absent entity fields are `null`, never fabricated. Web entity scores are not restricted to 0–1. `bestGuessLabels` contains Google's label strings.
+`pages` preserves Google's ordering and includes the first 10 safe HTTP(S) URL/domain pairs; `pageCount` counts the whole array. Non-web identifiers are never linked or treated as known stock domains. `domains` deduplicates safe hosts from full, partial, similar and page results, with non-stock full-match hosts first. Entities are sorted by score and capped at five; absent fields are null. Entity scores are not restricted to 0–1. `bestGuessLabels` contains Google's label strings.
 
 ## MongoDB collections and retention
 
@@ -104,6 +111,6 @@ The suite checks supplied-file integrity, the export-only exception, mapping str
 
 The repository contains the original packet, assignment brief, and `ClaimGuard_Photos_v2/`. They were read for Phase 3 context. The 36 JPEGs were copied intact into `data/photos/`; claims.json remains the supplied authoritative source and mapping.json remains human-authored. The generated contact sheet uses the daisyUI card markup and bundled styles without external requests or mapping hints.
 
-Supplied Vision/MongoDB/Form settings were imported into the ignored .env. An initial Atlas login failed; a later intended dry-run invocation seeded the 18 claims and 36 photos after npm consumed the flag. That argument-forwarding issue is fixed and documented in the Phase 3 guide. Further live runs were left to the user, as requested. Remaining work: human-verified mappings, live Vision calibration, manual confirmation of Form email collection, optional provider selection, live end-to-end verification, and later assignment documentation/deck. Phase 5 UI checks used explicitly synthetic browser fixtures and mocked service tests. No live Vision/LLM results are claimed.
+Supplied service settings remain in ignored .env. Historical Phase 3 dry-run/seed details remain in its guide. The user subsequently supplied all mappings and authorized live tests. The earlier Atlas 503 cause was the university's changing public IP versus a narrow Atlas allowlist; the user reports production stable after correcting Network Access. Phase 5.5 does not re-investigate or change Atlas settings. Live IMG-026 succeeds with the parser fix; MI-10234's cached review works in the browser. Remaining human tasks: calibrate placeholder thresholds, verify Form email collection/sign-in, choose optional integrations if desired, deploy these changes, and finish the assignment documentation/deck. No Form was submitted.
 
 The form prefill includes exactly the four configured entries and prefill mode. Its lookup summary is single-line, at most 300 characters, and contains only per-photo findings. The human-submission audit step remains pending; the app has no completion action or form-submission path. Source scanning and route tests enforce that boundary.

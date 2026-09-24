@@ -1,5 +1,17 @@
 # Verified API references
 
+## Phase 5.5
+
+New npm stable pins: @google-cloud/vision 6.1.0, p-retry 8.0.1, downshift 9.4.0. Context7 resolved `/sindresorhus/p-retry`, `/downshift-js/downshift`, and `/mongodb/node-mongodb-native` and verified retry callbacks/options, useCombobox prop getters/disabled items, and driver retry behavior. The Google-specific search required official docs plus installed declarations/source to confirm API-key-only auth.
+
+- [Google ImageAnnotatorClient](https://docs.cloud.google.com/nodejs/docs/reference/vision/latest/vision/v1.imageannotatorclient-class): constructor and batch API; installed 6.1.0 confirms `apiKey` with REST fallback, no service account.
+- [Google GAX](https://github.com/googleapis/gax-nodejs): installed CallOptions accepts `timeout`, `retry: null`; fallback errors preserve `httpStatusCode`, distinct from gRPC code. SDK initialization precedes the transport deadline, so the app recalculates remaining time afterward.
+- [p-retry](https://github.com/sindresorhus/p-retry): retries/minTimeout/factor/shouldRetry/onFailedAttempt/signal. AbortSignal alone does not interrupt an in-flight promise; the app retains a wall-clock race and SDK transport timeout.
+- [Downshift useCombobox](https://github.com/downshift-js/downshift/tree/master/src/hooks/useCombobox): controlled inputValue/selectedItem, getInputProps/getItemProps/getMenuProps/getToggleButtonProps and isItemDisabled.
+- [MongoDB driver](https://github.com/mongodb/node-mongodb-native): installed 7.6.0 connection_string source defaults retryReads/retryWrites to true; both are explicitly set in ClaimGuard.
+
+The installed daisyUI skill supplied toast/alert/collapse/menu/input/validator classes; Next.js bundled docs and skills guided route/client boundaries. See [PHASE5.5.md](PHASE5.5.md) for real vs mocked verification.
+
 Verified during Phase 2 on 2026-09-21. Exact dependency versions were resolved with `npm view PACKAGE@latest name version engines peerDependencies --json`, then installed with a committed lockfile. The checked APIs were also verified through Context7 or the installed skills before implementation.
 
 - [sharp resize](https://sharp.pixelplumbing.com/api-resize/): explicit width/height, `fit: "fill"`, `kernel: "lanczos3"`.

@@ -10,12 +10,27 @@ beforeEach(() => {
 afterEach(async () => { await closeMongoClient(); });
 
 describe("MongoDB connection lifecycle (mocked)", () => {
+  it("reuses the development global across a simulated hot reload", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const connect = vi.spyOn(MongoClient.prototype, "connect").mockImplementation(async function (this: MongoClient) { return this; });
+    const first = await getMongoClient();
+    vi.resetModules();
+    const reloaded = await import("./mongodb");
+    expect(await reloaded.getMongoClient()).toBe(first); expect(connect).toHaveBeenCalledTimes(1);
+    await reloaded.closeMongoClient();
+  });
+  it("uses module caching without a global client in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.spyOn(MongoClient.prototype, "connect").mockImplementation(async function (this: MongoClient) { return this; });
+    const first = await getMongoClient(); expect(await getMongoClient()).toBe(first);
+    expect(globalThis.__claimGuardMongo).toBeUndefined();
+  });
   it("shares one connect promise across concurrent callers", async () => {
     const connect = vi.spyOn(MongoClient.prototype, "connect").mockImplementation(async function (this: MongoClient) { return this; });
     const [a, b] = await Promise.all([getMongoClient(), getMongoClient()]);
     expect(a).toBe(b);
     expect(connect).toHaveBeenCalledTimes(1);
-    expect(a.options).toMatchObject({ maxPoolSize: 5, minPoolSize: 0, serverSelectionTimeoutMS: 3000 });
+    expect(a.options).toMatchObject({ maxPoolSize: 5, minPoolSize: 0, serverSelectionTimeoutMS: 3000, retryReads: true, retryWrites: true });
   });
   it("clears a rejected connection so a later request can recover", async () => {
     const connect = vi.spyOn(MongoClient.prototype, "connect")

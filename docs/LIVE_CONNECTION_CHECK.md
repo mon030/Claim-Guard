@@ -1,5 +1,7 @@
 # Live connection check — 2026-09-23
 
+**Superseded status:** the user identified the earlier Atlas 503 cause as the university's changing public IP against a narrow Network Access allowlist. They report production stable after correcting it. Phase 5.5 does not re-investigate this. The actual IMG-026 parser diagnosis and later successful Vision/API/browser checks are in [PHASE5.5.md](PHASE5.5.md). The historical observations below remain for traceability.
+
 ## Mapping applied
 
 The user supplied the group's 18 claim/photo pairs. They were transcribed into `data/mapping.json` with `.jpg` extensions, without inferring any pair. `check-mapping` passed: two distinct photos per claim and all 36 files used exactly once. `mapping-doc` generated `docs/MAPPING.md`.

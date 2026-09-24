@@ -5,6 +5,8 @@ import type { DecideResponse, LookupResponse } from "../api/contracts";
 import { api, ClientApiError, jsonBody, lookupApi, runPool } from "./api";
 import { collectImages, MAX_BATCH_BYTES, readDescription } from "./files";
 import { preparePhoto, type PreparedPhoto } from "./images";
+import { claimAmountSchema } from "../claim-validation";
+import { useToasts } from "./use-toasts";
 
 export interface ClaimDraft { claimId: string; claimant: string; narrative: string; date: string; amount: string; location: string; category: string; customerEmail: string; }
 export interface PhotoItem {
@@ -16,6 +18,9 @@ const emptyDraft: ClaimDraft = { claimId: "", claimant: "", narrative: "", date:
 const messageOf = (error: unknown) => error instanceof Error ? error.message : "Something went wrong. Please try again.";
 
 export function useClaimGuard() {
+  const { toasts, notify, dismiss } = useToasts();
+  const [resetVersion, setResetVersion] = useState(0);
+  const retryWork = useRef<(() => Promise<void>) | null>(null);
   const [mode, setMode] = useState<"existing" | "new">("existing");
   const [config, setConfig] = useState<UiConfiguration | null>(null);
   const [code, setCode] = useState("");
@@ -56,7 +61,7 @@ export function useClaimGuard() {
   }, [code, reload]);
 
   const selected = claims.find((claim) => claim.claimId === selectedId);
-  const invalidate = useCallback(() => { setDecision(null); setExplanation(null); setError(""); setErrorCode(""); setNotice(""); }, []);
+  const invalidate = useCallback(() => { setDecision(null); setExplanation(null); setError(""); setErrorCode(""); setNotice(""); retryWork.current = null; }, []);
   function switchMode(value: "existing" | "new") {
     if (lock.current) return;
     setMode(value); setPhotos([]); setSelectedId(""); setProgress(0); invalidate();
@@ -77,7 +82,7 @@ export function useClaimGuard() {
     lock.current = true; setBusy(true);
     try { await work(); }
     catch (failure) {
-      if (mounted.current) { setError(messageOf(failure)); setErrorCode(failure instanceof ClientApiError ? failure.code : "client_error"); }
+      if (mounted.current) { retryWork.current = work; setError(messageOf(failure)); setErrorCode(failure instanceof ClientApiError ? failure.code : "client_error"); }
     } finally { lock.current = false; if (mounted.current) setBusy(false); }
   }
   const patchPhoto = (key: string, patch: Partial<PhotoItem>) => setPhotos((current) => current.map((photo) => photo.key === key ? { ...photo, ...patch } : photo));
@@ -116,7 +121,9 @@ export function useClaimGuard() {
       if (!selected || selected.unavailableReason) throw new Error(selected?.unavailableReason ?? "Select a mapped claim first.");
       return selected.claimId;
     }
-    if (!draft.claimant.trim() || !draft.narrative.trim() || !draft.date || !draft.amount.trim() || !Number.isFinite(Number(draft.amount)) || Number(draft.amount) < 0) throw new Error("Enter a claimant, description, incident date, and valid non-negative amount.");
+    if (!draft.claimant.trim() || !draft.narrative.trim() || !draft.date || !draft.amount.trim()) throw new Error("Enter a claimant, description, incident date, and claim amount.");
+    const amount = claimAmountSchema.safeParse(Number(draft.amount));
+    if (!amount.success) throw new Error(amount.error.issues[0].message);
     const fingerprint = JSON.stringify(draft);
     if (savedClaim.current?.fingerprint !== fingerprint) savedClaim.current = { fingerprint, requestId: crypto.randomUUID() };
     if (savedClaim.current.claimId) return savedClaim.current.claimId;
@@ -148,6 +155,8 @@ export function useClaimGuard() {
   async function decideClaim(claimId: string, results: LookupResponse[]) {
     const result = await api<DecideResponse>("/api/decide", code, jsonBody({ claimId, photoIds: results.map((photo) => photo.photoId) }));
     setDecision(result);
+    notify(result.decision === "Auto-approve" ? "Check complete: auto-approve." : result.decision === "Escalate" ? "Check complete: human review needed." : "Check blocked: review the missing information.", result.decision === "Auto-approve" ? "success" : "warning");
+    if (results.some((photo) => photo.lookup.status === "unavailable")) notify("Some photos could not be checked against the web.", "warning");
     if (results.some((photo) => photo.lookup.status === "unavailable")) setError("One or more web checks are unavailable. Review the per-photo errors and the guardrail decision; unavailable never means no matches.");
   }
   async function run() {
@@ -187,9 +196,27 @@ export function useClaimGuard() {
       setNotice("Summary copied.");
     } catch { setError("Clipboard access was denied. Select and copy the visible results instead."); }
   }
+  function startOver() {
+    if (lock.current) return;
+    invalidate(); setMode("existing"); setSelectedId(""); setDraft({ ...emptyDraft }); setPhotos([]);
+    setSuggestion(null); setProgress(0); savedClaim.current = null; setResetVersion((value) => value + 1);
+    notify("Form cleared. Saved database records are unchanged.", "info");
+  }
+  function printResults() {
+    window.print();
+    notify("Print dialog opened. Choose Save as PDF to save.", "info");
+  }
+  function tryAgain() {
+    setError("");
+    if (retryWork.current) void exclusive(retryWork.current);
+    else if (decision && photos.length >= 2) void run();
+    else setReload((value) => value + 1);
+  }
   const blocked = mode === "existing" ? (!selected ? "Select an available claim to begin." : selected.unavailableReason ?? "")
     : photos.length < 2 ? "Add at least two photos before running the check." : photos.length > 6 ? "Remove photos until two to six remain. No files will be silently skipped." : "";
   return { mode, switchMode, config, code, setCode, claims, selectedId, selected, chooseClaim, draft, changeDraft,
+    toasts, dismissToast: dismiss, startOver, printResults, tryAgain, resetVersion,
+    claimLabel: mode === "existing" ? `${selectedId} · ${selected?.claimant ?? ""}` : `${savedClaim.current?.claimId ?? draft.claimId} · ${draft.claimant}`,
     photos, decision, busy, loading, error, errorCode, notice, progress, suggestion, explanation, blocked,
     addFiles, removePhoto, importDescription, suggestFields, applySuggestion, run, rerun, explain, copySummary,
     retryLoading: () => setReload((value) => value + 1) };

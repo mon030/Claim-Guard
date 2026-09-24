@@ -8,6 +8,7 @@ import { USER_DATA_RETENTION_MS, type VisionCacheRecord, type LookupUnavailableR
 import { detectWeb, extractVisionResult, VisionError, toWebCheck, type VisionResult } from "./vision";
 import { reserveDailyUsage } from "./usage";
 import { safeError } from "./errors";
+import { withMongoRetry } from "./mongo-retry";
 
 export interface ReferencePhoto {
   filename: string; sha256: string; dhash: string; claimId: string | null; claimDate: string | null;
@@ -45,31 +46,33 @@ export function usableCachedVision(cached: VisionCacheRecord | null, now = new D
   return Array.isArray(cached.stockDomainAllowlist) && sameAllowlist(cached.stockDomainAllowlist, guardrailConfig.STOCK_DOMAIN_ALLOWLIST) && validated.success ? validated.data : null;
 }
 
-export const mongoLookupServices: LookupServices = {
+export function createMongoLookupServices(deadline?: number): LookupServices {
+ const db = <T>(work: () => Promise<T>) => withMongoRetry(work, deadline);
+ return {
   now: () => new Date(),
   async readCache(sha256) {
-    const { vision_cache } = await getCollections();
-    return vision_cache.findOne({ sha256 }, { timeoutMS: 1_000 });
+    const { vision_cache } = await db(getCollections);
+    return db(() => vision_cache.findOne({ sha256 }, { timeoutMS: 1_000 }));
   },
   async saveCache(record) {
-    const { vision_cache } = await getCollections();
+    const { vision_cache } = await db(getCollections);
     const { createdAt, ...fields } = record;
     try {
-      await vision_cache.updateOne({ sha256: record.sha256 }, { $set: fields, $setOnInsert: { createdAt } }, { upsert: true, timeoutMS: 1_000 });
+      await db(() => vision_cache.updateOne({ sha256: record.sha256 }, { $set: fields, $setOnInsert: { createdAt } }, { upsert: true, timeoutMS: 1_000 }));
     } catch (error) {
       if (!(error && typeof error === "object" && "code" in error && error.code === 11000)) throw error;
-      await vision_cache.updateOne({ sha256: record.sha256 }, { $set: fields }, { timeoutMS: 1_000 });
+      await db(() => vision_cache.updateOne({ sha256: record.sha256 }, { $set: fields }, { timeoutMS: 1_000 }));
     }
   },
   detect: (buffer, onRaw, timeoutMs) => detectWeb(buffer, { beforeAttempt: () => reserveDailyUsage("vision"), onRaw, timeoutMs }),
   async references() {
-    const { photos, claims } = await getCollections();
+    const { photos, claims } = await db(getCollections);
     const now = new Date();
     const active = { $or: [{ origin: "seed" as const }, { origin: "user" as const, expiresAt: { $gt: now } }] };
-    const [photoRows, claimRows] = await Promise.all([
+    const [photoRows, claimRows] = await db(() => Promise.all([
       photos.find(active, { projection: { filename: 1, sha256: 1, dhash: 1, claimId: 1 }, timeoutMS: 1_000 }).toArray(),
       claims.find(active, { projection: { claimId: 1, date: 1, claimant: 1 }, timeoutMS: 1_000 }).toArray(),
-    ]);
+    ]));
     const dates = new Map(claimRows.map((claim) => [claim.claimId, claim.date]));
     const claimants = new Map(claimRows.map((claim) => [claim.claimId, claim.claimant]));
     return photoRows.map((photo) => ({ filename: photo.filename, sha256: photo.sha256, dhash: photo.dhash,
@@ -77,7 +80,9 @@ export const mongoLookupServices: LookupServices = {
       claimDate: photo.claimId ? dates.get(photo.claimId) ?? null : null,
       claimant: photo.claimId ? claimants.get(photo.claimId) : undefined }));
   },
-};
+ };
+}
+export const mongoLookupServices = createMongoLookupServices();
 
 export function findReferenceMatches(hashes: { sha256: string; dhash: string }, references: readonly ReferencePhoto[], options: { claimId?: string; referenceFilename?: string } = {}) {
   const referenceMatches: ReferenceMatch[] = [];
@@ -122,7 +127,7 @@ export async function lookupPhoto(buffer: Buffer, options: { filename: string; c
     try {
       let raw: unknown;
       // Reserve time for cache, comparison and photo persistence under the API's 10s cap.
-      const timeoutMs = options.deadlineMs === undefined ? undefined : options.deadlineMs - Date.now() - 3_500;
+      const timeoutMs = options.deadlineMs === undefined ? undefined : options.deadlineMs - Date.now() - 1_500;
       if (timeoutMs !== undefined && timeoutMs <= 0) throw new VisionError("timeout", "No time remains for a live lookup in this request.");
       // After this boundary a request replay could spend quota, even if persistence fails.
       options.onLiveAttempt?.();

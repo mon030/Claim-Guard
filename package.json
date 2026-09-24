@@ -3,7 +3,9 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm test",
+    "favicon:generate": "node scripts/generate-favicon.mjs",
     "db:indexes": "tsx --env-file=.env scripts/create-indexes.ts",
     "env:setup": "tsx --env-file=.env scripts/setup-local-env.ts",
     "contact-sheet": "tsx --env-file=.env scripts/contact-sheet.ts",
@@ -26,10 +29,13 @@
     "reset-user-data:dry-run": "tsx --env-file=.env scripts/reset-user-data.ts --dry-run"
   },
   "dependencies": {
+    "@google-cloud/vision": "6.1.0",
+    "downshift": "9.4.0",
     "fflate": "0.8.3",
     "mammoth": "1.12.3",
     "mongodb": "7.6.0",
     "next": "16.3.5",
+    "p-retry": "8.0.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "sharp": "0.35.4",

@@ -5,12 +5,14 @@ import { retentionFor, type ClaimRecord } from "../../../lib/models";
 import { ApiError, apiErrorResponse, jsonResponse, readJson } from "../../../lib/api/http";
 import { requireDemoAccess } from "../../../lib/api/security";
 import type { ClaimOption } from "../../../lib/api/claim-contracts";
+import { withMongoRetry } from "../../../lib/mongo-retry";
+import { claimAmountSchema } from "../../../lib/claim-validation";
 export const runtime = "nodejs";
 export const maxDuration = 10;
 const schema = z.strictObject({
   clientRequestId: z.uuid(), claimId: z.string().trim().max(80).regex(/^[\p{L}\p{N}_-]*$/u).optional(),
   claimant: z.string().trim().min(1).max(200), narrative: z.string().trim().min(1).max(10_000),
-  date: z.iso.date(), amount: z.number().finite().nonnegative().max(1_000_000_000),
+  date: z.iso.date(), amount: claimAmountSchema,
   location: z.string().trim().max(200).default(""), category: z.string().trim().max(100).default(""),
   customerEmail: z.union([z.email(), z.literal("")]).default(""),
 });
@@ -21,12 +23,14 @@ function existingDraft(existing: ClaimRecord, input: z.infer<typeof schema>) {
   return jsonResponse({ claimId: existing.claimId });
 }
 export async function GET(request: Request) {
+  const deadline = Date.now() + 9_000;
+  const db = <T>(work: () => Promise<T>) => withMongoRetry(work, deadline);
   try {
     requireDemoAccess(request);
-    const { claims, photos } = await getCollections();
+    const { claims, photos } = await db(getCollections);
     const [rows, images] = await Promise.all([
-      claims.find({ origin: "seed" }, { projection: { emailBody: 0, emailSubject: 0 }, timeoutMS: 1_000 }).toArray(),
-      photos.find({ origin: "seed" }, { projection: { filename: 1, claimId: 1 }, timeoutMS: 1_000 }).toArray(),
+      db(() => claims.find({ origin: "seed" }, { projection: { emailBody: 0, emailSubject: 0 }, timeoutMS: 1_000 }).toArray()),
+      db(() => photos.find({ origin: "seed" }, { projection: { filename: 1, claimId: 1 }, timeoutMS: 1_000 }).toArray()),
     ]);
     const result: ClaimOption[] = rows.map((claim) => {
       const mapped = (claim.mappedPhotos ?? []).flatMap((filename) => {
@@ -41,20 +45,25 @@ export async function GET(request: Request) {
   } catch (error) { return apiErrorResponse(error); }
 }
 export async function POST(request: Request) {
+  const deadline = Date.now() + 9_000;
+  const db = <T>(work: () => Promise<T>) => withMongoRetry(work, deadline);
   try {
     requireDemoAccess(request);
     const input = schema.parse(await readJson(request, 65_536));
-    const { claims } = await getCollections();
-    const existing = await claims.findOne({ origin: "user", clientRequestId: input.clientRequestId }, { timeoutMS: 1_000 });
+    const { claims } = await db(getCollections);
+    const existing = await db(() => claims.findOne({ origin: "user", clientRequestId: input.clientRequestId }, { timeoutMS: 1_000 }));
     if (existing) return existingDraft(existing, input);
     for (let attempt = 0; attempt < 5; attempt++) {
       const claimId = input.claimId || `MI-DEMO-${String(randomInt(10_000)).padStart(4, "0")}`;
       try {
-        await claims.insertOne({ ...input, claimId, ...retentionFor("user"), emailBody: "", emailSubject: "", mappedPhotos: null }, { timeoutMS: 1_000 });
+        const record = { ...input, claimId, ...retentionFor("user"), emailBody: "", emailSubject: "", mappedPhotos: null };
+        // insertOne assigns _id to this same object; an ambiguous committed retry
+        // hits the unique request index and is recovered by existingDraft below.
+        await db(() => claims.insertOne(record, { timeoutMS: 1_000 }));
         return jsonResponse({ claimId }, 201);
       } catch (error) {
         if (!(error && typeof error === "object" && "code" in error && error.code === 11000)) throw error;
-        const raced = await claims.findOne({ origin: "user", clientRequestId: input.clientRequestId }, { timeoutMS: 1_000 });
+        const raced = await db(() => claims.findOne({ origin: "user", clientRequestId: input.clientRequestId }, { timeoutMS: 1_000 }));
         if (raced) return existingDraft(raced, input);
         if (input.claimId) throw new ApiError(409, "claim_id_exists", "That Claim ID already exists. Choose another or leave it blank.");
       }

@@ -1,5 +1,17 @@
 # ClaimGuard Project Spec
 
+## Latest: Phase 5.5 (supersedes earlier implementation/status notes)
+
+Follow-up UI fix: thumbnail preview cleanup uses an inactive-request guard instead of aborting the fetch, so switching existing claims no longer surfaces Next.js's AbortError; object URLs are still released. The existing-claim picker is one vertical column. The UI uses daisyUI's caramellatte theme with larger radii and a warm green primary, plus a generated shield favicon (`app/favicon.ico`, sourced from `app/icon.svg`).
+
+Follow-up UI fix: thumbnail preview cleanup uses an inactive-request guard instead of aborting the fetch, so switching existing claims no longer surfaces Next.js's AbortError; object URLs are still released. The existing-claim picker is one vertical column. The UI uses daisyUI's caramellatte theme with larger radii and a warm green primary, plus a generated shield favicon (`app/favicon.ico`, sourced from `app/icon.svg`).
+
+Use official @google-cloud/vision 6.1.0 with API-key-only REST fallback, base64 images, eight-second total deadline and one HTTP-5xx retry; p-retry 8.0.1 accounts for every paid attempt. IMG-026's actual failure was a legitimate x-raw-image URL rejected by the old HTTP(S)-only schema, not quota or an empty result. Counts now preserve opaque identifiers while links/domains exclude them; minimal successful annotations and null error fields are valid, true failures log actual detail and remain unavailable. Live IMG-026 succeeded. Do not change team guardrail/config; E4 behavior is tested end-to-end through mocked routes and actual result rendering.
+
+Atlas intermittent 503 root cause was resolved by the user (dynamic university IP vs narrow Atlas allowlist); do not re-investigate it. Add explicit driver read/write retries, typed development-global client cache, production module cache, one MongoClient constructor, bounded transient-operation backoff and clear classified logs. Browser claims/lookup/decide retry retryable database 503 once, then show a manual retry alert. Never replay usage increments or notifications in the DB wrapper.
+
+UI adds Downshift 9.4.0 searchable claims, config-derived collapsed rule explanation, three distinct evidence states, results-only print CSS/PDF action, client-only Start Over (no DB deletion), shared Zod positive amount cap MAX_CLAIM_AMOUNT=250000, and daisyUI queued toasts (max3, 4.5s, manual dismiss, reduced motion, no overlap). Toasts cover outcomes, consolidated unavailable checks, retry recovery, print request and reset—not every step. No PDF/toast package. User approved including /tests in Git. Complete change/verification record: docs/PHASE5.5.md. No secrets/IAM/Atlas changes or Google Form submissions in this phase.
+
 ClaimGuard is a BUAN 3301 (AI in Business) course project for the fictional Meridian Insurance. It must be a working end-user web app, not an admin dashboard, and should mirror the instructor's single-page flow: claim description/input, batch or ZIP photo upload, and a submit/analyze action. It must also let a user choose one of 18 existing claims.
 
 ## Required workflow
@@ -22,7 +34,7 @@ ClaimGuard is a BUAN 3301 (AI in Business) course project for the fictional Meri
 
 ## Configuration
 
-Local secrets live in git-ignored `.env`; only `.env.example` is committed. Production uses the same variable names in Vercel Project Settings and requires redeployment after changes. Secrets never use `NEXT_PUBLIC_`. `lib/env.ts` validates lazily with Zod and produces readable missing-variable errors. Scripts run through `tsx --env-file=.env`.
+Local secrets live in git-ignored `.env`; only `.env.example` is committed. Production uses the same variable names in Vercel Project Settings and requires redeployment after changes. Secrets never use `NEXT_PUBLIC_`. `lib/env.ts` validates lazily with Zod and produces readable missing-variable errors. Data and service scripts run through `tsx --env-file=.env`; the favicon generator uses Node directly because it needs no configuration.
 
 Required variables: `GOOGLE_VISION_API_KEY`, `MONGODB_URI`, `MONGODB_DB` (default `claimguard`), `GOOGLE_FORM_URL`, `GOOGLE_FORM_ENTRY_CLAIM_ID`, `GOOGLE_FORM_ENTRY_CLAIMANT`, `GOOGLE_FORM_ENTRY_LOOKUP`, and `GOOGLE_FORM_ENTRY_DECISION`.
 

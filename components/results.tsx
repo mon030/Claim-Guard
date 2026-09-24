@@ -4,16 +4,18 @@ import type { DecideResponse } from "../lib/api/contracts";
 import type { PhotoItem } from "../lib/client/use-claim-guard";
 import { EvidenceCard } from "./evidence-card";
 const notificationLabels = { not_required: "Not needed for this decision.", not_configured: "No adjuster-notification webhook is configured. Share the findings with an adjuster manually.", sent: "Adjuster notification sent.", failed: "Notification failed. The decision is saved; contact an adjuster manually." };
-export function Results({ decision, photos, code, busy, llmConfigured, explanation, rerun, copy, explain }: {
+export function Results({ decision, photos, code, busy, llmConfigured, explanation, rerun, copy, explain, print, startOver, claimLabel }: {
   decision: DecideResponse | null; photos: PhotoItem[]; code: string; busy: boolean; llmConfigured: boolean;
   explanation: { explanation: string; source: string } | null;
   rerun: (key: string) => Promise<void>; copy: () => Promise<void>; explain: () => Promise<void>;
+  print?: () => void; startOver?: () => void; claimLabel?: string;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { if (decision) heading.current?.focus(); }, [decision]);
   if (!decision && !photos.some((photo) => photo.result)) return null;
-  return <section className="space-y-6" aria-labelledby="results-title">
+  return <section className="claim-results space-y-6" aria-labelledby="results-title">
     <h2 id="results-title" ref={heading} tabIndex={-1} className="text-2xl font-semibold">Your claim review</h2>
+    {claimLabel ? <p className="font-semibold">{claimLabel}</p> : null}
     {decision ? <div className="card card-border bg-base-100"><div className="card-body"><h3 className="card-title">Agent activity</h3>
       <ul className="timeline timeline-vertical timeline-compact">{decision.timeline.map((step) => <li key={step.sequence}>
         {step.sequence > 1 ? <hr /> : null}<div className="timeline-middle"><span className="badge badge-sm" aria-hidden="true">{step.sequence}</span></div>
@@ -32,7 +34,8 @@ export function Results({ decision, photos, code, busy, llmConfigured, explanati
       {llmConfigured ? <button type="button" className="btn" disabled={busy} onClick={() => void explain()}>Generate optional adjuster summary</button> : null}
       {explanation ? <div className="alert" role="status"><div><p className="font-semibold">{explanation.source === "llm" ? "AI-written summary · review for accuracy" : "Deterministic summary · AI unavailable"}</p><p className="mt-2">{explanation.explanation}</p><p className="mt-2 text-xs">Supplementary wording only; the guardrail decision above is unchanged.</p></div></div> : null}
       <div className="alert" role="note">You must sign in with your own Google account and click Submit. The agent never submits for you.</div>
-      <div className="card-actions justify-start">{decision.prefillUrl ? <a className="btn" href={decision.prefillUrl} target="_blank" rel="noopener noreferrer">Open pre-filled form ↗</a> : <span className="badge badge-warning">Form unavailable until the claim is ready</span>}<button className="btn" type="button" disabled={busy} onClick={() => void copy()}>Copy summary</button></div>
+      <div className="card-actions justify-start no-print">{decision.prefillUrl ? <a className="btn" href={decision.prefillUrl} target="_blank" rel="noopener noreferrer">Open pre-filled form ↗</a> : <span className="badge badge-warning">Form unavailable until the claim is ready</span>}<button className="btn" type="button" disabled={busy} onClick={() => void copy()}>Copy summary</button><button className="btn" type="button" disabled={busy} onClick={print}>Save as PDF</button><button className="btn btn-outline" type="button" disabled={busy} onClick={startOver}>Start Over</button></div>
+      <p className="text-xs no-print">This clears the form on your screen. It doesn&apos;t delete anything from the database.</p>
       <p className="text-sm"><span className="font-semibold">Adjuster notification: </span>{notificationLabels[decision.escalation]}</p>
     </div></div> : null}
   </section>;

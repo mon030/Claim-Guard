@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ClaimGuard shield">
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#245b4b"/>
+  <path d="M32 10 49 17v13c0 11-6.7 18.5-17 24-10.3-5.5-17-13-17-24V17z" fill="#fff8ec"/>
+  <path d="m23 31 6.5 6.5L42 24" fill="none" stroke="#245b4b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,20 +1,23 @@
 import { getCollections } from "../../../../../lib/mongodb";
 import { activeRecords, ApiError, apiErrorResponse, photoObjectId } from "../../../../../lib/api/http";
 import { requireDemoAccess, DEMO_HEADER } from "../../../../../lib/api/security";
+import { withMongoRetry } from "../../../../../lib/mongo-retry";
 
 export const runtime = "nodejs";
 export const maxDuration = 10;
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
+  const deadline = Date.now() + 9_000;
+  const db = <T>(work: () => Promise<T>) => withMongoRetry(work, deadline);
   try {
     requireDemoAccess(request);
     const { id } = await context.params;
     const photoId = photoObjectId(id);
-    const { photos } = await getCollections();
+    const { photos } = await db(getCollections);
     const now = new Date();
-    const photo = await photos.findOne({ _id: photoId, ...activeRecords(now) }, {
+    const photo = await db(() => photos.findOne({ _id: photoId, ...activeRecords(now) }, {
       projection: { thumbnail: 1, thumbnailContentType: 1, origin: 1, expiresAt: 1 }, timeoutMS: 1_000,
-    });
+    }));
     if (!photo?.thumbnail || photo.thumbnailContentType !== "image/jpeg") throw new ApiError(404, "photo_not_found", "Thumbnail not found or expired.");
     const remaining = photo.origin === "user" ? Math.max(0, Math.floor((photo.expiresAt.getTime() - now.getTime()) / 1000)) : 300;
     return new Response(new Uint8Array(photo.thumbnail.value()), { headers: {

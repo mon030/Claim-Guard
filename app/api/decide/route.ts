@@ -1,9 +1,11 @@
 import { ObjectId } from "mongodb";
+import { createHash } from "node:crypto";
+import { withMongoRetry } from "../../../lib/mongo-retry";
 import { z } from "zod";
 import { decide, type ClaimEvidence, type OtherClaimSummary } from "../../../lib/guardrail";
 import { getCollections } from "../../../lib/mongodb";
 import { retentionFor, type AuditLogRecord } from "../../../lib/models";
-import { mongoLookupServices } from "../../../lib/lookup";
+import { createMongoLookupServices } from "../../../lib/lookup";
 import { narrativeSimilarity } from "../../../lib/narrative-similarity";
 import { buildPrefillUrl, summarizePhotoLookups } from "../../../lib/google-form";
 import { notifyEscalation } from "../../../lib/escalation";
@@ -18,19 +20,21 @@ const inputSchema = z.strictObject({ claimId: claimIdSchema,
   photoIds: z.array(objectIdSchema).max(6).refine((ids) => new Set(ids.map((id) => id.toLowerCase())).size === ids.length) });
 
 export async function POST(request: Request): Promise<Response> {
+  const deadline = Date.now() + 9_000;
+  const db = <T>(work: () => Promise<T>) => withMongoRetry(work, deadline);
   try {
     requireDemoAccess(request);
     const input = inputSchema.parse(await readJson(request));
-    const collections = await getCollections();
+    const collections = await db(getCollections);
     const now = new Date();
     const photoIds = input.photoIds.map(photoObjectId);
     const [claim, storedPhotos, otherClaims, references] = await Promise.all([
-      collections.claims.findOne({ claimId: input.claimId, ...activeRecords(now) }, { timeoutMS: 1_000 }),
-      collections.photos.find({ _id: { $in: photoIds }, ...activeRecords(now) }, { projection: { content: 0, thumbnail: 0 }, timeoutMS: 1_000 }).toArray(),
-      collections.claims.find({ claimId: { $ne: input.claimId }, ...activeRecords(now) }, {
+      db(() => collections.claims.findOne({ claimId: input.claimId, ...activeRecords(now) }, { timeoutMS: 1_000 })),
+      db(() => collections.photos.find({ _id: { $in: photoIds }, ...activeRecords(now) }, { projection: { content: 0, thumbnail: 0 }, timeoutMS: 1_000 }).toArray()),
+      db(() => collections.claims.find({ claimId: { $ne: input.claimId }, ...activeRecords(now) }, {
         projection: { claimId: 1, claimant: 1, date: 1, amount: 1, narrative: 1 }, timeoutMS: 1_000,
-      }).toArray(),
-      mongoLookupServices.references(),
+      }).toArray()),
+      createMongoLookupServices(deadline).references(),
     ]);
     if (!claim) throw new ApiError(404, "claim_not_found", "Claim not found or expired.");
     if (claim.origin === "seed" && photoIds.length > 2) throw new ApiError(400, "seed_photo_count", "Reference claims use exactly two mapped photos.");
@@ -45,7 +49,7 @@ export async function POST(request: Request): Promise<Response> {
       ? claim.mappedPhotos!.indexOf(a.filename) - claim.mappedPhotos!.indexOf(b.filename)
       : (a.slot ?? 0) - (b.slot ?? 0));
     const photos = await Promise.all(orderedPhotos.map(async (photo) => {
-      const cached = await collections.vision_cache.findOne({ sha256: photo.sha256 }, { timeoutMS: 1_000 });
+      const cached = await db(() => collections.vision_cache.findOne({ sha256: photo.sha256 }, { timeoutMS: 1_000 }));
       return evidenceFromStoredPhoto(photo, cached, references, claim.claimId, now);
     }));
     const evidence: ClaimEvidence = { claimId: claim.claimId, claimant: claim.claimant, customerEmail: claim.customerEmail,
@@ -57,7 +61,10 @@ export async function POST(request: Request): Promise<Response> {
     const lookupSummary = summarizePhotoLookups(photos);
     const prefillUrl = result.decision === "Blocked" ? null : buildPrefillUrl({ claimId: claim.claimId, claimant: claim.claimant,
       lookup: lookupSummary, decision: result.decision });
-    const decisionId = new ObjectId();
+    const requestKey = request.headers.get("Idempotency-Key");
+    if (requestKey && !z.uuid().safeParse(requestKey).success) throw new ApiError(400, "invalid_request_key", "Invalid request identifier.");
+    // A browser's single automatic retry uses the same ID, without changing the JSON contract.
+    const decisionId = requestKey ? new ObjectId(createHash("sha256").update(`${requestKey}:${JSON.stringify(input)}`).digest("hex").slice(0, 24)) : new ObjectId();
     const retention = retentionFor(claim.origin, now);
     const timeline: (AuditLogRecord & TimelineEntry)[] = [];
     function activity(event: AuditLogRecord["event"], message: string, status: NonNullable<AuditLogRecord["status"]> = "completed", photoId?: ObjectId) {
@@ -74,11 +81,14 @@ export async function POST(request: Request): Promise<Response> {
       activity("form_prefill", "Pre-fill link generated without an email field.");
       activity("form_human_submission", "Waiting for a human to sign in and click Submit.", "pending");
     }
-    await collections.decisions.insertOne({ _id: decisionId, ...retention, claimId: claim.claimId,
+    await db(() => collections.decisions.updateOne({ _id: decisionId }, { $setOnInsert: { ...retention, claimId: claim.claimId,
       photoIds: orderedPhotos.map((photo) => photo._id), evidence, result,
       explanation: [...result.reasons, ...result.notes].join(" ") || "No escalation rule was triggered by the recorded evidence.",
-      explanationSource: "deterministic" }, { timeoutMS: 1_000 });
-    await collections.audit_log.insertMany(timeline, { ordered: true, timeoutMS: 1_000 });
+      explanationSource: "deterministic" } }, { upsert: true, timeoutMS: 1_000 }));
+    // Deterministic IDs make retries safe even if a previous write committed before timing out.
+    await Promise.all(timeline.map((entry) => db(() => collections.audit_log.updateOne({
+      _id: new ObjectId(createHash("sha256").update(`${decisionId}:${entry.sequence}`).digest("hex").slice(0, 24)),
+    }, { $set: entry }, { upsert: true, timeoutMS: 1_000 }))));
     // Persist the core decision/timeline before a best-effort external notification.
     const escalation = await notifyEscalation(evidence, result);
     if (escalation === "sent" || escalation === "failed") {

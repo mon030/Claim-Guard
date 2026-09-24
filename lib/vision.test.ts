@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { detectWeb, extractVisionResult, isStockDomain, toWebCheck, VISION_ENDPOINT, VISION_TIMEOUT_MS } from "./vision";
+import { MockImageAnnotatorClient } from "../tests/helpers/vision-sdk-mock";
+vi.mock("@google-cloud/vision", async () => ({ v1: { ImageAnnotatorClient: (await import("../tests/helpers/vision-sdk-mock")).MockImageAnnotatorClient } }));
 
 // Synthetic API fixtures, never represented as a real photo lookup.
 const emptyResponse = () => ({ responses: [{ webDetection: {} }] });
@@ -17,7 +19,7 @@ const fixture = () => ({ responses: [{ webDetection: {
   bestGuessLabels: [{ label: "synthetic vehicle" }],
 } }] });
 
-beforeEach(() => vi.stubEnv("GOOGLE_VISION_API_KEY", "unit-test-key"));
+beforeEach(() => { vi.stubEnv("GOOGLE_VISION_API_KEY", "unit-test-key"); vi.spyOn(console, "error").mockImplementation(() => undefined); });
 afterEach(() => vi.useRealTimers());
 
 describe("Vision extraction through mocked HTTP", () => {
@@ -28,7 +30,9 @@ describe("Vision extraction through mocked HTTP", () => {
     const [url, options] = fetchMock.mock.calls[0];
     expect(url).toBe(VISION_ENDPOINT);
     expect(url).not.toContain("unit-test-key");
-    expect(options?.headers).toEqual({ "Content-Type": "application/json", "X-Goog-Api-Key": "unit-test-key" });
+    expect(MockImageAnnotatorClient.lastOptions).toEqual({ apiKey: "unit-test-key", fallback: true });
+    expect(MockImageAnnotatorClient.lastCallOptions.retry).toBeNull();
+    expect(MockImageAnnotatorClient.lastCallOptions.timeout).toBeLessThanOrEqual(8_000);
     expect(JSON.parse(options?.body as string)).toEqual({ requests: [{
       image: { content: Buffer.from("synthetic image bytes").toString("base64") },
       features: [{ type: "WEB_DETECTION", maxResults: 50 }],
@@ -63,23 +67,51 @@ describe("Vision extraction through mocked HTTP", () => {
     expect(extractVisionResult({ responses: [{ webDetection: { webEntities: [{}] } }] }).topWebEntities).toEqual([{ entityId: null, description: null, score: null }]);
   });
   it.each([
-    {}, { responses: [] }, { responses: [{}] },
-    { responses: [{ webDetection: null }] },
-    { responses: [{ webDetection: { fullMatchingImages: [{ url: "javascript:alert(1)" }] } }] },
+    {}, { responses: [] }, { responses: [{ webDetection: { fullMatchingImages: "invalid" } }] },
   ])("rejects missing or malformed evidence instead of creating a clean result: %j", (response) => {
     expect(() => extractVisionResult(response)).toThrow();
   });
   it("rejects per-image API errors even when HTTP status is 200", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ responses: [{ error: { code: 8, message: "quota" } }] })));
-    await expect(detectWeb(Buffer.from("fixture"))).rejects.toMatchObject({ code: "annotation" });
+    await expect(detectWeb(Buffer.from("fixture"))).rejects.toMatchObject({ code: "annotation", status: 8, message: "Vision annotation error 8: quota" });
   });
   it("rejects invalid JSON", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("not json")));
-    await expect(detectWeb(Buffer.from("fixture"))).rejects.toMatchObject({ code: "invalid_response" });
+    await expect(detectWeb(Buffer.from("fixture"))).rejects.toMatchObject({ code: "network" });
+  });
+  it.each([{}, { webDetection: {} }, { webDetection: null, error: null }])("accepts successful minimal annotations: %j", (annotation) => {
+    expect(extractVisionResult({ responses: [annotation] })).toMatchObject({ fullMatchCount: 0, similarCount: 0, pageCount: 0 });
+  });
+  it("regression: opaque x-raw-image URL does not reject the IMG-026-shaped successful result", () => {
+    // Synthetic fixture mirrors the actual response shape, not invented lookup evidence.
+    const raw = { responses: [{ error: null, webDetection: {
+      visuallySimilarImages: [{ url: "https://example.test/photo.jpg" }, { url: "x-raw-image:///fixture" }],
+      pagesWithMatchingImages: [{ url: "javascript:alert(1)" }, { url: "https://example.test/page" }],
+    } }] };
+    expect(extractVisionResult(raw)).toMatchObject({ similarCount: 2, pageCount: 2, domains: ["example.test"], pages: [{ url: "https://example.test/page", domain: "example.test" }] });
+  });
+  it("checks per-image errors before malformed web fields and logs the real code/message", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ responses: [{ error: { code: 3, message: "Invalid image fixture" }, webDetection: "bad" }] })));
+    await expect(detectWeb(Buffer.from("fixture"))).rejects.toThrow("Invalid image fixture");
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).toContain("Invalid image fixture");
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).toContain("annotation");
   });
 });
 
 describe("Vision failures and deadlines", () => {
+  it("includes SDK cold initialization in the deadline and sends nothing after it expires", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(MockImageAnnotatorClient.prototype, "initialize").mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve({}), 9_000)));
+    const fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);
+    const pending = expect(detectWeb(Buffer.from("fixture"))).rejects.toMatchObject({ code: "timeout" });
+    await vi.advanceTimersByTimeAsync(8_000); await pending;
+    await vi.advanceTimersByTimeAsync(1_000); expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it("redacts the configured key in both server logging and returned annotation errors", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ responses: [{ error: { code: 3, message: "Problem with unit-test-key" } }] })));
+    await expect(detectWeb(Buffer.from("fixture"))).rejects.toThrow("Problem with [redacted]");
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("unit-test-key");
+  });
   it("reserves quota per attempt, including retries", async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(new Response("unavailable", { status: 503 })).mockResolvedValueOnce(Response.json(emptyResponse()));
     vi.stubGlobal("fetch", fetchMock);

@@ -1,4 +1,5 @@
-import { MongoNetworkError, MongoOperationTimeoutError, MongoServerSelectionError, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
+import { isMongoFailure, mongoFailureDetails } from "../mongo-retry";
 import { z } from "zod";
 import { EnvironmentError } from "../env";
 
@@ -19,18 +20,14 @@ export function photoObjectId(value: string): ObjectId {
 export function jsonResponse(value: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return Response.json(value, { status, headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex", ...headers } });
 }
-export function apiErrorResponse(error: unknown, context?: { operation: "lookup"; stage: "load" | "lookup" | "save"; retrySafe: boolean }): Response {
+export function apiErrorResponse(error: unknown, context?: { operation: "lookup"; stage: "load" | "lookup" | "save" }): Response {
   if (error instanceof ApiError) return jsonResponse({ error: { code: error.code, message: error.message } }, error.status, error.headers);
   if (error instanceof EnvironmentError) return jsonResponse({ error: { code: "configuration_error", message: error.message } }, 503);
   if (error instanceof z.ZodError) return jsonResponse({ error: { code: "invalid_request", message: "Request fields are missing, invalid, repeated, or unsupported." } }, 400);
-  const databaseFailure = error instanceof MongoNetworkError || error instanceof MongoOperationTimeoutError || error instanceof MongoServerSelectionError;
+  const databaseFailure = isMongoFailure(error);
   if (databaseFailure) {
-    // Fixed labels only: driver messages/topology can contain connection strings.
-    const kind = error instanceof MongoServerSelectionError ? "server_selection" : error instanceof MongoOperationTimeoutError ? "operation_timeout" : "network";
-    console.error("ClaimGuard database unavailable", { kind, operation: context?.operation ?? "request", stage: context?.stage ?? "unknown" });
-    const retryable = context?.retrySafe === true;
-    return jsonResponse({ error: { code: "database_unavailable", message: "The database connection was interrupted or timed out. Please try again.", retryable } }, 503,
-      retryable ? { "Retry-After": "1" } : {});
+    console.error("ClaimGuard database unavailable", JSON.stringify({ ...mongoFailureDetails(error), operation: context?.operation ?? "request", stage: context?.stage ?? "unknown" }));
+    return jsonResponse({ error: "database_unavailable", message: "The database connection is unavailable. Please try again.", retryable: true }, 503, { "Retry-After": "1" });
   }
   // Do not log raw driver/provider errors: they can contain credentials or personal data.
   console.error("ClaimGuard request failed; no raw request, credential, or provider response was logged.");

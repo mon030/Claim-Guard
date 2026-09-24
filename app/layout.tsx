@@ -6,5 +6,5 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, noarchive: true },
 };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-theme="corporate"><body className="min-h-screen bg-base-200">{children}</body></html>;
+  return <html lang="en" data-theme="caramellatte"><body className="min-h-screen bg-base-200">{children}</body></html>;
 }

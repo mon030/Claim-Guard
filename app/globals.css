@@ -1,17 +1,44 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: corporate --default;
+  themes: caramellatte --default;
   logs: false;
 }
 
-/* Preserve the built-in theme, with stronger contrast for small status/button text. */
+/* Toasts have a reserved layout row: never cover result actions, including on mobile. */
+.app-shell { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.app-scroll { flex: 1; min-height: 0; overflow: auto; }
+.toast-dock { flex: none; display: flex; justify-content: flex-end; }
+.toast-dock:has(.alert) { border-top: 1px solid var(--color-base-300); background: var(--color-base-100); }
+.toast-dock .toast { position: static; transform: none; max-width: 100%; }
+.toast-dock .toast:empty { padding: 0; }
+.toast-dock .alert { max-width: min(36rem, calc(100vw - 2rem)); }
+@media (prefers-reduced-motion: reduce) {
+  .toast-dock *, .collapse, .collapse-content { animation: none !important; transition: none !important; }
+}
+@media print {
+  @page { margin: 14mm; }
+  html, body, .app-shell, .app-scroll { height: auto !important; overflow: visible !important; display: block; }
+  main > :not(.claim-results), .toast-dock, .no-print, .claim-results button, .claim-results .btn { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; }
+  .claim-results { margin: 0; color: #111; background: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .claim-results .card, .claim-results .stats, .claim-results .alert { box-shadow: none; break-inside: avoid; }
+  .claim-results .grid { display: block; }
+  .claim-results article { margin-bottom: 1rem; }
+  .claim-results .text-base-content\/70, .claim-results .text-base-content\/75 { color: #444; }
+  .claim-results img { max-height: 150px; object-fit: contain; }
+}
+
+/* Warm, rounded ClaimGuard skin on daisyUI's built-in caramellatte theme. */
 @plugin "daisyui/theme" {
-  name: "corporate";
+  name: "caramellatte";
   default: true;
-  --color-primary: #0065a1;
+  --color-primary: #245b4b;
   --color-primary-content: #ffffff;
-  --color-success: #007b36;
+  --color-success: #28734c;
   --color-success-content: #ffffff;
-  --color-error: #b42332;
+  --color-error: #a93945;
   --color-error-content: #ffffff;
+  --radius-selector: 2rem;
+  --radius-field: 0.875rem;
+  --radius-box: 1.5rem;
 }

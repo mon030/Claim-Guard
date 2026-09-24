@@ -1,7 +1,7 @@
 import { Binary, ObjectId } from "mongodb";
 import type { PhotoEvidence } from "../../../lib/guardrail";
 import { guardrailConfig } from "../../../lib/guardrail.config";
-import { lookupPhoto } from "../../../lib/lookup";
+import { lookupPhoto, createMongoLookupServices } from "../../../lib/lookup";
 import { getCollections } from "../../../lib/mongodb";
 import { retentionFor, type StoredPhotoLookup } from "../../../lib/models";
 import { thumbnail } from "../../../lib/photos";
@@ -10,24 +10,25 @@ import { limitLookupByIp, requireDemoAccess } from "../../../lib/api/security";
 import { readLookupInput, validateImage } from "../../../lib/api/upload";
 import type { LookupResponse } from "../../../lib/api/contracts";
 import { isStockDomain } from "../../../lib/vision";
+import { withMongoRetry } from "../../../lib/mongo-retry";
 
 export const runtime = "nodejs";
 export const maxDuration = 10;
 
 export async function POST(request: Request): Promise<Response> {
   const deadlineMs = Date.now() + 9_500;
+  const db = <T>(work: () => Promise<T>) => withMongoRetry(work, deadlineMs);
   let stage: "load" | "lookup" | "save" = "load";
-  let liveAttempted = false;
   try {
     requireDemoAccess(request);
     limitLookupByIp(request);
     const input = await readLookupInput(request);
-    const { photos, claims } = await getCollections();
+    const { photos, claims } = await db(getCollections);
     const now = new Date();
-    const seed = input.kind === "seed" ? await photos.findOne({ _id: photoObjectId(input.photoId), origin: "seed" }, { timeoutMS: 1_000 }) : null;
+    const seed = input.kind === "seed" ? await db(() => photos.findOne({ _id: photoObjectId(input.photoId), origin: "seed" }, { timeoutMS: 1_000 })) : null;
     if (input.kind === "seed" && (!seed || !seed.content)) throw new ApiError(404, "photo_not_found", "Seeded photo not found.");
     const claimId = input.kind === "upload" ? input.claimId : seed!.claimId;
-    if (input.kind === "upload" && !await claims.findOne({ claimId: input.claimId, ...activeRecords(now) }, { projection: { _id: 1 }, timeoutMS: 1_000 })) throw new ApiError(404, "claim_not_found", "Create or select an existing, unexpired claim before uploading.");
+    if (input.kind === "upload" && !await db(() => claims.findOne({ claimId: input.claimId, ...activeRecords(now) }, { projection: { _id: 1 }, timeoutMS: 1_000 }))) throw new ApiError(404, "claim_not_found", "Create or select an existing, unexpired claim before uploading.");
     const bytes = input.kind === "upload" ? input.bytes : Buffer.from(seed!.content!.value());
     const contentType = await validateImage(bytes);
     // Finish full decoding before a paid lookup; headers alone cannot prove valid image data.
@@ -37,8 +38,7 @@ export async function POST(request: Request): Promise<Response> {
     const filename = input.kind === "upload" ? input.filename : seed!.filename;
     stage = "lookup";
     const report = await lookupPhoto(bytes, { filename, claimId: claimId ?? undefined,
-      referenceFilename: seed?.filename, forceLive: input.forceLive, deadlineMs,
-      onLiveAttempt: () => { liveAttempted = true; } });
+      referenceFilename: seed?.filename, forceLive: input.forceLive, deadlineMs }, createMongoLookupServices(deadlineMs));
     const evidence: PhotoEvidence = { filename, sha256: report.sha256, dhash: report.dhash,
       crossClaimMatches: report.crossClaimMatches, webCheck: report.webCheck };
     const lookup: StoredPhotoLookup = { sha256: report.sha256, attemptedAt: new Date(),
@@ -48,7 +48,7 @@ export async function POST(request: Request): Promise<Response> {
     stage = "save";
     if (input.kind === "seed") {
       photoId = seed!._id;
-      const updated = await photos.updateOne({ _id: photoId, origin: "seed", sha256: report.sha256 }, { $set: { lookup } }, { timeoutMS: 1_000 });
+      const updated = await db(() => photos.updateOne({ _id: photoId, origin: "seed", sha256: report.sha256 }, { $set: { lookup } }, { timeoutMS: 1_000 }));
       if (!updated.matchedCount) throw new ApiError(409, "photo_changed", "Seed photo changed during lookup. Re-seed or reload before trying again.");
     } else {
       const filter = { origin: "user" as const, claimId: input.claimId, slot: input.slot };
@@ -57,10 +57,10 @@ export async function POST(request: Request): Promise<Response> {
         thumbnail: new Binary(preview), thumbnailContentType: "image/jpeg" as const, lookup }, $unset: { content: "" as const } };
       // The partial unique claim/slot index makes concurrent uploads idempotent.
       let saved;
-      try { saved = await photos.findOneAndUpdate(filter, update, { upsert: true, returnDocument: "after", includeResultMetadata: false, timeoutMS: 1_000 }); }
+      try { saved = await db(() => photos.findOneAndUpdate(filter, update, { upsert: true, returnDocument: "after", includeResultMetadata: false, timeoutMS: 1_000 })); }
       catch (error) {
         if (!(error && typeof error === "object" && "code" in error && error.code === 11000)) throw error;
-        saved = await photos.findOneAndUpdate(filter, update, { returnDocument: "after", includeResultMetadata: false, timeoutMS: 1_000 });
+        saved = await db(() => photos.findOneAndUpdate(filter, update, { returnDocument: "after", includeResultMetadata: false, timeoutMS: 1_000 }));
       }
       if (!saved) throw new ApiError(503, "photo_not_saved", "Could not save the photo evidence. Please try again.");
       photoId = saved._id;
@@ -73,5 +73,5 @@ export async function POST(request: Request): Promise<Response> {
         claimant: report.matchedClaimants[match.matchedClaimId] ?? null, date: match.matchedClaimDate,
         matchType: match.matchType, distance: match.distance })) };
     return jsonResponse(response);
-  } catch (error) { return apiErrorResponse(error, { operation: "lookup", stage, retrySafe: !liveAttempted }); }
+  } catch (error) { return apiErrorResponse(error, { operation: "lookup", stage }); }
 }

@@ -5,6 +5,7 @@ export function EvidenceCard({ photo, code, disabled, rerun }: { photo: PhotoIte
   const result = photo.result;
   if (!result) return null;
   const { evidence, lookup } = result, web = evidence.webCheck;
+  const hasMatches = web.fullMatchCount + web.partialMatchCount + web.similarCount > 0;
   return <article className="card card-border bg-base-100"><div className="card-body gap-4">
     <PhotoPreview key={evidence.sha256} photoId={result.photoId} code={code} filename={evidence.filename} />
     <h3 className="card-title break-all text-base">{evidence.filename}</h3>
@@ -23,7 +24,8 @@ export function EvidenceCard({ photo, code, disabled, rerun }: { photo: PhotoIte
       <p className="font-semibold">{match.claimId} · {match.date}</p><p>{match.claimant ?? "Claimant unavailable"}</p><p className="break-all">{match.filename}</p><p><span className="badge badge-sm">{match.matchType}</span> distance {match.distance}</p>
     </li>)}</ul> : <p className="mt-1 text-sm text-base-content/70">{lookup.referenceCoverage.available && !lookup.referenceCoverage.unmapped ? "No matches to other claims." : "Comparison incomplete; finish mapping and seeding."}</p>}</div>
     {lookup.warnings.length ? <div className="alert alert-warning text-sm" role="alert"><ul className="space-y-1">{lookup.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div> : null}
-    <p className="text-xs text-base-content/70">A similar image is not proof of reuse. An allow-listed domain is context, not an approval.</p>
+    {web.status === "unavailable" ? <div className="alert alert-warning text-sm" role="alert">This photo could not be verified against the web. Under our guardrail, an unverifiable photo is escalated for human review.</div> :
+      <div className={`alert ${hasMatches ? "alert-warning" : "alert-success"} text-sm`}><div><p className="font-semibold">{hasMatches ? "Web checked: matches found" : "Web checked: no matches found"}</p><p>A similar image is not proof of reuse. An allow-listed domain is context, not an approval.</p></div></div>}
     <button className="btn" type="button" disabled={disabled} onClick={() => void rerun(photo.key)} aria-label={`Re-run live lookup for ${evidence.filename}`}>Re-run live lookup</button>
   </div></article>;
 }

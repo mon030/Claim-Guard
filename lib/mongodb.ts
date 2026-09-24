@@ -35,14 +35,22 @@ export const COLLECTION_INDEXES: Record<keyof CollectionModels, IndexDescription
 };
 
 interface MongoState { client: MongoClient; connection: Promise<MongoClient>; }
-const globalCache = globalThis as typeof globalThis & { __claimGuardMongo?: MongoState };
+declare global { var __claimGuardMongo: MongoState | undefined; }
+let productionState: MongoState | undefined;
+const getState = () => process.env.NODE_ENV === "development" ? globalThis.__claimGuardMongo : productionState;
+function setState(state: MongoState | undefined) {
+  if (process.env.NODE_ENV === "development") globalThis.__claimGuardMongo = state;
+  else productionState = state;
+}
 const indexPromises = new WeakMap<Db, Promise<void>>();
 
 /** Shared across warm requests and development reloads; never closes per request. */
 export async function getMongoClient(): Promise<MongoClient> {
-  if (!globalCache.__claimGuardMongo) {
+  if (!getState()) {
     const { MONGODB_URI } = getMongoEnv();
     const client = new MongoClient(MONGODB_URI, {
+      retryReads: true,
+      retryWrites: true,
       maxPoolSize: 5,
       minPoolSize: 0,
       maxIdleTimeMS: 60_000,
@@ -51,14 +59,14 @@ export async function getMongoClient(): Promise<MongoClient> {
       timeoutMS: 5_000,
     });
     const state: MongoState = { client, connection: client.connect() };
-    globalCache.__claimGuardMongo = state;
+    setState(state);
     state.connection = state.connection.catch(async (error: unknown) => {
-      if (globalCache.__claimGuardMongo === state) delete globalCache.__claimGuardMongo;
+      if (getState() === state) setState(undefined);
       await client.close().catch(() => undefined);
       throw error;
     });
   }
-  return globalCache.__claimGuardMongo.connection;
+  return getState()!.connection;
 }
 
 /** Idempotent creation; deliberately never drops or rewrites existing indexes. */
@@ -102,8 +110,8 @@ export async function getCollections() {
 
 /** For one-off scripts and test teardown only. */
 export async function closeMongoClient(): Promise<void> {
-  const state = globalCache.__claimGuardMongo;
-  delete globalCache.__claimGuardMongo;
+  const state = getState();
+  setState(undefined);
   if (state) {
     await state.connection.catch(() => undefined);
     await state.client.close();

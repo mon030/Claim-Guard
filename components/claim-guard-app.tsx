@@ -5,17 +5,21 @@ import { ClaimFields } from "./claim-fields";
 import { PhotoUploader } from "./photo-uploader";
 import { PhotoPreview } from "./photo-preview";
 import { Results } from "./results";
+import { ClaimPicker } from "./claim-picker";
+import { HowItWorks } from "./how-it-works";
+import { Toasts } from "./toasts";
 const money = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
 
 export function ClaimGuardApp() {
   const app = useClaimGuard(); const [enteredCode, setEnteredCode] = useState("");
   const canAccess = Boolean(app.config && (!app.config.demoAccessRequired || app.code));
-  return <main className="mx-auto max-w-4xl space-y-7 px-4 py-8 sm:px-6 sm:py-12">
+  return <div className="app-shell"><div className="app-scroll"><main className="mx-auto max-w-4xl space-y-7 px-4 py-8 sm:px-6 sm:py-12">
     <header className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm font-semibold tracking-wide">MERIDIAN INSURANCE</p><span className="badge">BUAN 3301 · Course demo</span></div>
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">ClaimGuard</h1><p className="max-w-2xl text-lg text-base-content/75">Check claim photos for reuse, understand the evidence, and leave the final form submission to a real person.</p>
     </header>
+    <HowItWorks />
     {app.config?.demoAccessRequired && (!app.code || app.error && !app.claims.length) ? <form className="card card-border bg-base-100" onSubmit={(event) => { event.preventDefault(); app.setCode(enteredCode.trim()); app.retryLoading(); }}><div className="card-body"><h2 className="card-title">Demo access</h2><p>No account or login is needed. Enter the team’s shared demo code once for this page.</p><label className="fieldset">Access code<input required type="password" className="input w-full" autoComplete="off" value={enteredCode} onChange={(event) => setEnteredCode(event.target.value)} /></label><button className="btn" disabled={app.loading}>Continue</button></div></form> : null}
-    {app.error ? <div className={`alert ${["mapping_required", "references_incomplete"].includes(app.errorCode) ? "alert-warning" : "alert-error"}`} role="alert"><div><p className="font-semibold">{["mapping_required", "references_incomplete"].includes(app.errorCode) ? "Check blocked" : "Something needs attention"}</p><p>{app.error}</p>{!app.config || !app.claims.length ? <button className="btn mt-3" type="button" disabled={app.loading} onClick={app.retryLoading}>Retry connection</button> : null}</div></div> : null}
+    {app.error ? <div className={`alert ${["mapping_required", "references_incomplete"].includes(app.errorCode) ? "alert-warning" : "alert-error"}`} role="alert"><div><p className="font-semibold">{["mapping_required", "references_incomplete"].includes(app.errorCode) ? "Check blocked" : "Something needs attention"}</p><p>{app.error}</p><button className="btn mt-3" type="button" disabled={app.loading || app.busy} onClick={app.tryAgain}>Try again</button></div></div> : null}
     <p aria-live="polite" aria-atomic="true" className="min-h-6 text-sm text-base-content/75">{app.busy ? `Processing · ${app.progress} of ${app.photos.length} lookups finished. Please keep this page open.` : app.notice}</p>
     <form className="card card-border bg-base-100" onSubmit={(event) => { event.preventDefault(); void app.run(); }} aria-busy={app.busy}>
       <div className="card-body gap-7 p-5 sm:p-8">
@@ -23,7 +27,7 @@ export function ClaimGuardApp() {
           {(["existing", "new"] as const).map((mode) => <label key={mode} className={`flex cursor-pointer items-center gap-3 rounded-field border p-4 ${app.mode === mode ? "border-base-content bg-base-200" : "border-base-300"}`}><input className="radio" type="radio" name="claim-mode" checked={app.mode === mode} onChange={() => app.switchMode(mode)} /><span>{mode === "existing" ? "Select existing claim" : "Submit new claim"}</span></label>)}
         </div></fieldset>
         {app.mode === "existing" ? <section className="space-y-4" aria-label="Existing claim details">
-          <label className="fieldset">Reference claim<select className="select w-full" value={app.selectedId} disabled={app.busy || app.loading || !canAccess} onChange={(event) => app.chooseClaim(event.target.value)}><option value="">{app.loading ? "Loading claims…" : "Choose a mapped claim"}</option>{app.claims.map((claim) => <option key={claim.claimId} value={claim.claimId} disabled={Boolean(claim.unavailableReason)}>{claim.claimId} · {claim.claimant} · {money(claim.amount)}{claim.unavailableReason ? " — unavailable: missing photo mapping" : ""}</option>)}</select></label>
+          <ClaimPicker key={app.resetVersion} claims={app.claims} selectedId={app.selectedId} disabled={app.busy || app.loading || !canAccess} choose={app.chooseClaim} />
           {app.loading ? <span className="loading loading-spinner" aria-label="Loading claims" /> : null}
           {canAccess && !app.loading && !app.claims.length ? <div className="alert" role="status">No seeded claims are available. The team must seed the instructor’s dataset before existing claims can be selected.</div> : null}
           {app.claims.some((claim) => claim.unavailableReason) ? <div className="alert alert-warning" role="status">Unavailable claims need their two photos mapped by the team and re-seeded. ClaimGuard never guesses a mapping.</div> : null}
@@ -43,7 +47,7 @@ export function ClaimGuardApp() {
         </div>
       </div>
     </form>
-    <Results decision={app.decision} photos={app.photos} code={app.code} busy={app.busy} llmConfigured={Boolean(app.config?.llmConfigured)} explanation={app.explanation} rerun={app.rerun} copy={app.copySummary} explain={app.explain} />
+    <Results decision={app.decision} photos={app.photos} code={app.code} busy={app.busy} llmConfigured={Boolean(app.config?.llmConfigured)} explanation={app.explanation} rerun={app.rerun} copy={app.copySummary} explain={app.explain} print={app.printResults} startOver={app.startOver} claimLabel={app.claimLabel} />
     <footer className="border-t border-base-300 pt-5 text-xs text-base-content/70">Meridian Insurance is fictional. This university-course prototype assists review; it does not establish fraud or replace an adjuster.</footer>
-  </main>;
+  </main></div><Toasts items={app.toasts} dismiss={app.dismissToast} /></div>;
 }
