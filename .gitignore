@@ -72,12 +72,9 @@ web_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# Local secret files; keep the placeholder template tracked.
+.env*
+!.env.example
 env_setup.md
 tmp/
 
@@ -86,7 +83,7 @@ tmp/
 .parcel-cache
 
 # Next.js build output
-.next
+.next/
 next-env.d.ts
 out
 
@@ -141,3 +138,6 @@ dist
 /.npm-cache
 *.docx
 Agent_intro.md
+
+# data/photos/ is intentionally tracked for reproducible course seeding.
+# It is outside public/ so Next.js does not serve the full-size JPGs.
