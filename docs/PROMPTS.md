@@ -2,7 +2,7 @@
 
 Prompt version: `1.0.0`. Executable definitions and Zod schemas live in `lib/llm/prompts.ts`. The text below is complete; runtime input is sent as a separate JSON-encoded user message. No other LLM use is implemented.
 
-Added `export` to hammingDistanceHex in guardrail.ts; no other change
+Added `export` to hammingDistanceHex in guardrail.ts; no other change at that time. During full live testing on 2026-09-25, the user separately authorized one wording-only guardrail fix: the stock-only note now requires `nonStockFullMatchCount === 0`. No decision threshold or outcome changed; the original nine tests remain unchanged.
 
 ## 1. Extract Claim ID and claimant
 

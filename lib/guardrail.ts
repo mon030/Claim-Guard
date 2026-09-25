@@ -150,7 +150,7 @@ export function decide(
       reasons.push(
         `${p.filename} has ${p.webCheck.nonStockFullMatchCount} full match(es) on non-stock sites (domains: ${shown}${more}).`
       );
-    } else if (p.webCheck.fullMatchCount > 0) {
+    } else if (p.webCheck.fullMatchCount > 0 && p.webCheck.nonStockFullMatchCount === 0) {
       notes.push(`${p.filename} matches a known stock-photo source only; not treated as reuse.`);
     }
   }

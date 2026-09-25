@@ -8,7 +8,7 @@ import { USER_DATA_RETENTION_MS, type VisionCacheRecord, type LookupUnavailableR
 import { detectWeb, extractVisionResult, VisionError, toWebCheck, type VisionResult } from "./vision";
 import { reserveDailyUsage } from "./usage";
 import { safeError } from "./errors";
-import { withMongoRetry } from "./mongo-retry";
+import { isMongoFailure, withMongoRetry } from "./mongo-retry";
 
 export interface ReferencePhoto {
   filename: string; sha256: string; dhash: string; claimId: string | null; claimDate: string | null;
@@ -139,6 +139,7 @@ export async function lookupPhoto(buffer: Buffer, options: { filename: string; c
           stockDomainAllowlist: [...guardrailConfig.STOCK_DOMAIN_ALLOWLIST] });
       } catch { warnings.push("Live Vision result received, but cache storage failed; the next lookup may require another API call."); }
     } catch (error) {
+      if (isMongoFailure(error)) throw error;
       visionError = safeError(error);
       unavailableReason = error instanceof VisionError && error.code === "quota" ? "daily_limit" :
         error instanceof VisionError && error.code === "timeout" ? "vision_timeout" : "vision_error";

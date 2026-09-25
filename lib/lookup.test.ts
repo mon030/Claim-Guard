@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { MongoOperationTimeoutError } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
 import { lookupPhoto, findReferenceMatches, type LookupServices } from "./lookup";
 import { extractVisionResult, VisionError } from "./vision";
@@ -42,6 +43,12 @@ describe("shared cached lookup", () => {
     expect(result.vision).toBeNull(); expect(result.webCheck.status).toBe("unavailable"); expect(result.visionError).toContain("Daily limit");
     expect(impl.saveCache).not.toHaveBeenCalled();
     expect(result.unavailableReason).toBe("daily_limit");
+  });
+  it("does not disguise a failed usage reservation as a Vision result", async () => {
+    const { impl } = services();
+    impl.detect.mockRejectedValue(new MongoOperationTimeoutError("synthetic quota counter timeout"));
+    await expect(lookupPhoto(await image(), { filename: "fixture.jpg" }, impl)).rejects.toBeInstanceOf(MongoOperationTimeoutError);
+    expect(impl.saveCache).not.toHaveBeenCalled();
   });
   it("keeps raw annotations server-side and can reclassify them without another paid call", async () => {
     const { impl, records } = services();

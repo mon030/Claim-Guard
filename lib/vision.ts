@@ -4,6 +4,7 @@ import pRetry from "p-retry";
 import { getVisionEnv } from "./env";
 import type { WebCheck } from "./guardrail";
 import { guardrailConfig } from "./guardrail.config";
+import { isMongoFailure, mongoFailureDetails } from "./mongo-retry";
 
 export const VISION_ENDPOINT = "https://vision.googleapis.com/v1/images:annotate";
 export const VISION_TIMEOUT_MS = 8_000;
@@ -167,9 +168,16 @@ export async function detectWeb(buffer: Buffer, options: { beforeAttempt?: () =>
         const status = (error as { httpStatusCode?: number }).httpStatusCode;
         return typeof status === "number" && status >= 500 && status <= 599;
       },
-      onFailedAttempt: ({ error, attemptNumber }) => logVisionError(error, attemptNumber, GOOGLE_VISION_API_KEY),
+      onFailedAttempt: ({ error, attemptNumber }) => {
+        if (isMongoFailure(error)) return;
+        logVisionError(error, attemptNumber, GOOGLE_VISION_API_KEY);
+      },
     })]);
   } catch (error) {
+    if (isMongoFailure(error)) {
+      console.error("ClaimGuard MongoDB failure", JSON.stringify({ ...mongoFailureDetails(error), operation: "vision_quota_reservation" }));
+      throw error;
+    }
     logVisionError(error, undefined, GOOGLE_VISION_API_KEY);
     if (controller.signal.aborted) throw timeout;
     if (error instanceof VisionError) throw new VisionError(error.code, error.message.replaceAll(GOOGLE_VISION_API_KEY, "[redacted]"), error.status);

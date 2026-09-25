@@ -11,14 +11,14 @@ export async function reserveUsage(collection: Collection<UsageRecord>, type: Us
   try {
     await collection.updateOne(filter, { $setOnInsert: {
       ...filter, count: 0, createdAt: now, expiresAt: new Date(now.getTime() + USER_DATA_RETENTION_MS),
-    } }, { upsert: true, timeoutMS: 1_000 });
+    } }, { upsert: true, timeoutMS: 1_500 });
   } catch (error) {
     // Another process can win the first upsert. The unique date/type index
     // makes the loser safe to proceed to the conditional atomic increment.
     if (!(error && typeof error === "object" && "code" in error && error.code === 11000)) throw error;
   }
   const reservation = await collection.findOneAndUpdate({ ...filter, count: { $lt: limit } },
-    { $inc: { count: 1 } }, { returnDocument: "after", includeResultMetadata: false, timeoutMS: 1_000 });
+    { $inc: { count: 1 } }, { returnDocument: "after", includeResultMetadata: false, timeoutMS: 1_500 });
   return reservation !== null;
 }
 export async function reserveDailyUsage(type: UsageRecord["type"]): Promise<boolean> {

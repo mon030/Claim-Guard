@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MongoOperationTimeoutError } from "mongodb";
 import { detectWeb, extractVisionResult, isStockDomain, toWebCheck, VISION_ENDPOINT, VISION_TIMEOUT_MS } from "./vision";
 import { MockImageAnnotatorClient } from "../tests/helpers/vision-sdk-mock";
 vi.mock("@google-cloud/vision", async () => ({ v1: { ImageAnnotatorClient: (await import("../tests/helpers/vision-sdk-mock")).MockImageAnnotatorClient } }));
@@ -125,6 +126,14 @@ describe("Vision failures and deadlines", () => {
     const beforeAttempt = vi.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(false);
     await expect(detectWeb(Buffer.from("fixture"), { beforeAttempt })).rejects.toMatchObject({ code: "quota" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+  it("surfaces a database quota-counter timeout as a database failure", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const failure = new MongoOperationTimeoutError("synthetic counter timeout");
+    await expect(detectWeb(Buffer.from("fixture"), { beforeAttempt: async () => { throw failure; } })).rejects.toBe(failure);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).toContain("vision_quota_reservation");
   });
   it("retries a 5xx exactly once", async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(new Response("unavailable", { status: 503 })).mockResolvedValueOnce(Response.json(emptyResponse()));

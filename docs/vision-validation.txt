@@ -1,0 +1,229 @@
+ClaimGuard Vision validation
+Generated: 2026-09-25T18:40:14.761Z
+Photos: 36; distinct SHA-256 hashes: 31; completed: 36; unavailable: 0
+Current placeholder thresholds: DHASH_MAX_DISTANCE=6, WEB_FULL_MATCH_THRESHOLD=3. This report does not change thresholds.
+Counts are returned Vision matches, not an exhaustive web census. Stock classification uses full-match image URL hosts.
+No claim-to-photo mappings are inferred. UNAVAILABLE is not a zero-match result.
+
+PER-PHOTO LOOKUPS
+Filename | source | full | partial | similar | pages | stock-full | nonstock-full
+IMG-001.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: palmbeachdailynews.com, quintoandar.com.br, lookaside.instagram.com, pgw.udn.com.tw, media.licdn.com, elheraldo.hn, media04.meinbezirk.at, saheron.com, resources.diariolibre.com, img.resemmedia.com, artexhibition.jp, pano.mappy.net, palestineremembered.com, s3-media0.fl.yelpcdn.com, img.nts-tv.com, mms.seloger.com, pwm.im-cdn.it, media.ouest-france.fr, imagecdn.99acres.com
+  Evidence checked: 2026-09-24T03:08:03.794Z
+IMG-002.jpg | live | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: informador.mx, tiktok.com, images.carexpert.com.au, lookaside.instagram.com, media.licdn.com, thumbs.dreamstime.com, i.ytimg.com, lookaside.fbsbx.com, i.etsystatic.com, cars.usnews.com, maxus.de, pictures.dealer.com, gmauthority.com, cdn-bio.qrz.com
+  Evidence checked: 2026-09-25T18:40:10.123Z
+IMG-003.jpg | cache | 2 | 0 | 20 | 15 | 0 | 2
+  Domains: upload.wikimedia.org, thumb.wikimedia.org, youtube.com, facebook.com, de.wikipedia.org, commons.wikimedia.org, weser-kurier.de, mz.de, wikiwand.com, schrauberprofi.com, instagram.com, motusmagazin.de, c0.carsie.ie, d19-a.sdn.cz, images.nettiauto.com, lookaside.instagram.com, images.dbastatic.dk, img.classistatic.de, adac-nordbayern.de, image-resize.meinestadt.de, img.gumtree.com, image.hmn.com, tiktok.com, quattroruote.it, lookaside.fbsbx.com
+  Evidence checked: 2026-09-25T18:39:56.909Z
+IMG-004.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: listings-prod.tcimg.net, cdnwine.diario1.com, cs.copart.com, bidfax.info, edmunds.com, lookaside.instagram.com, img1.wsimg.com, i.ytimg.com, http2.mlstatic.com, tiktok.com, images.autotrader.com, files2.aster.kz, lookaside.fbsbx.com, renebates.com, img.memurlar.net, avatars.avto.ru, wrleiloes.com.br
+  Evidence checked: 2026-09-24T03:08:13.368Z
+IMG-005.jpg | cache | 4 | 0 | 20 | 15 | 0 | 4
+  Domains: upload.wikimedia.org, fixmycar.pl, flib.samar.pl, youtube.com, fender.com, walmart.com, intl.fender.com, facebook.com, my.fender.com, commons.wikimedia.org, de.wiktionary.org, autokatalog.pl, p19-common-sign.tiktokcdn-us.com, p16-common-sign.tiktokcdn-us.com, tiktok.com, s3-media0.fl.yelpcdn.com, lookaside.instagram.com, images.craigslist.org, assets.primecreative.com.au, lookaside.fbsbx.com, i.redd.it, a1.drive-data.ru, s1.cdn.autoevolution.com, pier-burdio.com, i.ebayimg.com, f.i.uol.com.br
+  Evidence checked: 2026-09-24T03:06:52.835Z
+IMG-006.jpg | cache | 0 | 6 | 20 | 21 | 0 | 0
+  Domains: youtube.com, unitedaccess.com, ww1.hondaus.com, bid.cars, olx.pl, olx.com.br, lacentrale.fr, autoplenum.at, autoplenum.de, img.olx.com.br, mercury.bid.cars, ireland.apollo.olxcdn.com, pictures.lacentrale.fr, afxfuvomxq.cloudimg.io, cdn.prod.website-files.com, cs.copart.com, platform.cstatic-images.com, i.redd.it, grandcar.ua, lookaside.fbsbx.com, vehicle-images.carscommerce.inc, cdn.nawilebi.ge, images.sca.auction, pictures.dealer.com, imagescdn.d2cmedia.ca, preview.redd.it, i.ytimg.com, cdn05.carsforsale.com
+  Evidence checked: 2026-09-23T21:35:43.003Z
+IMG-007.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: i.ytimg.com, img.gumtree.com, img.bestcarweb.jp, octoba.jp, carcon.co.jp, media.donedeal.ie, jmrctokyo-g.com, img4.auto.cz, lh3.googleusercontent.com, keepercoating.jp, cdn.autoc-one.jp, lookaside.fbsbx.com, picture1.goo-net.com, autos-pctr.c.yimg.jp, suzuki.co.jp, cache.willhaben.at, ineaxmotors.com
+  Evidence checked: 2026-09-25T18:39:49.148Z
+IMG-008.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: tiktok.com, autossegredos.com.br, http2.mlstatic.com, cars.usnews.com, image.hmn.com, pictures.web.dealer.com, lookaside.fbsbx.com, thumbs.dreamstime.com, upload.wikimedia.org, s3-media0.fl.yelpcdn.com, platform.cstatic-images.com, i.redd.it
+  Evidence checked: 2026-09-25T18:39:50.051Z
+IMG-009.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: media-api.diplomatcorner.net, file.kelleybluebookimages.com, tiktok.com, p19-common-sign.tiktokcdn-us.com, lookaside.fbsbx.com, usnews.com, static.independent.co.uk, edmunds.com, edge.dealerstudio.com.au, trademe.tmcdn.co.nz, assets.atdw-online.com.au, avatars.avto.ru, xn--80aai5d.xn--p1ai, images0.autocasion.com, upload.wikimedia.org, media.drive.com.au, thumb.wikimedia.org, motorwagon.co
+  Evidence checked: 2026-09-24T00:23:46.713Z
+IMG-010.jpg | cache | 5 | 2 | 20 | 18 | 0 | 5
+  Domains: upload.wikimedia.org, thumb.wikimedia.org, live.staticflickr.com, farm8.static.flickr.com, youtube.com, facebook.com, instagram.com, pinterest.com, flickr.com, commons.wikimedia.org, imgflip.com, wordnik.com, ja.wikipedia.org, i.imgflip.com, i.pinimg.com, static.independent.co.uk, preview.redd.it, thumbor-auction.hmn.com, news247.gr, hips.hearstapps.com, auto-sofortkauf.ch, fbi.gov, img.classistatic.de, img2.flexnet.co.jp, cm-almodovar.pt, cdn.arstechnica.net, image-resize.meinestadt.de, mlo1gfdw4hud.i.optimole.com
+  Evidence checked: 2026-09-23T21:49:17.461Z
+IMG-011.jpg | cache | 0 | 2 | 20 | 16 | 0 | 0
+  Domains: instagram.com, youtube.com, facebook.com, bid.cars, youglish.com, dictionaryfirst.com, autopase.lv, frenchdictionary.com, i.ss.lv, mercury.bid.cars, trademe.tmcdn.co.nz, image.hmn.com, i.ebayimg.com, upload.wikimedia.org, img.classistatic.de, lookaside.fbsbx.com, image-resize.meinestadt.de, njuskalo.hr, bahamaslocal.com, cdn0.bodas.net, preview.redd.it, img.gumtree.com, thumb.wikimedia.org, images.prismic.io
+  Evidence checked: 2026-09-25T18:39:51.077Z
+IMG-012.jpg | cache | 1 | 0 | 20 | 15 | 0 | 1
+  Domains: upload.wikimedia.org, youtube.com, citizen.com, reddit.com, facebook.com, commons.wikimedia.org, instagram.com, cdn.rnudah.com, minews.com.tw, arbstorage.mncdn.com, http2.mlstatic.com, bahtsold.com, miro.medium.com, avatars.avto.ru, i.redd.it, panelproqld.com.au, imgcdnused.carbay.com, imgx.gridoto.com, imgd.aeplcdn.com, cdn.snsimg.carview.co.jp, i0.sinaimg.cn, filebroker-cdn.lazada.co.id
+  Evidence checked: 2026-09-24T21:49:33.011Z
+IMG-013.jpg | cache | 0 | 3 | 20 | 18 | 0 | 0
+  Domains: youtube.com, facebook.com, onelook.com, lexflexer.com, pinterest.com, commons.wikimedia.org, imgflip.com, ja.wikipedia.org, i.pinimg.com, thumb.wikimedia.org, i.imgflip.com, static.independent.co.uk, i.redd.it, thumbor-auction.hmn.com, news247.gr, img.classistatic.de, i.gaw.to, parade.com, media.hswstatic.com, hips.hearstapps.com, upload.wikimedia.org, tiktok.com, toyota-global.com, news.itmo.ru, live.staticflickr.com, haapsalu.ee, cm-almodovar.pt, trademe.tmcdn.co.nz
+  Evidence checked: 2026-09-23T21:49:17.431Z
+IMG-014.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: n1s1.hsmedia.ru, tiktok.com, img.gazeta.ru, media.licdn.com, dynamic-media-cdn.tripadvisor.com, patriot-autos.net, epopee-village.com, images.delfi.lt, image.sggp.org.vn, pic.upmedia.mg, res.cloudinary.com, images.bhaskarassets.com, lede-admin.lataco.com, p19-common-sign.tiktokcdn-us.com, s.hdnux.com, s1.staticld.com
+  Evidence checked: 2026-09-24T03:10:21.725Z
+IMG-015.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: upload.wikimedia.org, sfr.at, lookaside.fbsbx.com, avatars.avto.ru, lookaside.instagram.com, p19-common-sign.tiktokcdn-us.com, images.craigslist.org, hips.hearstapps.com, pier-burdio.com, p16-common-sign.tiktokcdn-us.com, mvmlackdoktor.de, cdn.auto-swiat.pl, dumka.media, i0.wp.com, usatoday.com, cache.willhaben.at
+  Evidence checked: 2026-09-24T03:06:52.586Z
+IMG-016.jpg | cache | 1 | 0 | 20 | 10 | 0 | 1
+  Domains: camion-desaubies.fr, youtube.com, facebook.com, mapquest.com, instagram.com, tiktok.com, img.classistatic.de, smgliwice.pl, lookaside.instagram.com, a1.drive-data.ru, media-eu.invisioncic.com, assets.autoweek.nl, p16-common-sign.tiktokcdn-us.com, cdn.prod.www.spiegel.de, i.st-nieruchomosci-online.pl, images.squarespace-cdn.com, s9.auto.drom.ru, avatars.mds.yandex.net, img.leboncoin.fr, cds-fn.de, platform.vox.com, cdn.riastatic.com, media.springernature.com, i2-prod.cheshire-live.co.uk
+  Evidence checked: 2026-09-25T18:39:52.309Z
+IMG-017.jpg | cache | 6 | 2 | 20 | 19 | 0 | 6
+  Domains: upload.wikimedia.org, miro.medium.com, cdn-behbo.nitrocdn.com, farm4.static.flickr.com, hasarliotom.com, discardstudies.com, facebook.com, youtube.com, commons.wikimedia.org, universe.roboflow.com, minesparis-psl.hal.science, azizilawfirm.com, medium.com, source.roboflow.com, i.ytimg.com, cdn.prod.website-files.com, rankomat.pl, statics.cedscdn.it, cloudfront-us-east-1.images.arcpublishing.com, lookaside.instagram.com, furche.at, pbs.twimg.com, i0.wp.com, sarayanews.com, ichef.bbci.co.uk, volcano.si.edu, machine.strabag.com, hrw.org, media.licdn.com, tvn.pl, images.ilpiccolo.it, assets.adac.de, cdnn21.img.ria.ru
+  Evidence checked: 2026-09-25T18:39:53.323Z
+IMG-018.jpg | cache | 6 | 2 | 20 | 19 | 0 | 6
+  Domains: upload.wikimedia.org, miro.medium.com, cdn-behbo.nitrocdn.com, farm4.static.flickr.com, hasarliotom.com, discardstudies.com, facebook.com, youtube.com, commons.wikimedia.org, universe.roboflow.com, minesparis-psl.hal.science, azizilawfirm.com, medium.com, source.roboflow.com, i.ytimg.com, cdn.prod.website-files.com, rankomat.pl, statics.cedscdn.it, cloudfront-us-east-1.images.arcpublishing.com, lookaside.instagram.com, furche.at, pbs.twimg.com, i0.wp.com, sarayanews.com, ichef.bbci.co.uk, volcano.si.edu, machine.strabag.com, hrw.org, media.licdn.com, tvn.pl, images.ilpiccolo.it, assets.adac.de, cdnn21.img.ria.ru
+  Evidence checked: 2026-09-25T18:39:53.323Z
+IMG-019.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: thumbs.web.sapo.io, lookaside.instagram.com, image.bastillepost.com, cdnphoto.dantri.com.vn, bloximages.newyork1.vip.townnews.com, nur.co.il, i.ex-cdn.com, preview.redd.it, ecnu.edu.cn, lookaside.fbsbx.com, premedia.vneconomy.vn, static01.nyt.com, tiktok.com, sajr.co.za, images2.thanhnien.vn, twreporter.org, s09.stc.yc.kpcdn.net, media-cdn-v2.laodong.vn, images-luxe.outlookindia.com, f.i.uol.com.br
+  Evidence checked: 2026-09-24T03:10:21.647Z
+IMG-020.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: listings-prod.tcimg.net, cdnwine.diario1.com, cs.copart.com, bidfax.info, edmunds.com, lookaside.instagram.com, i.ytimg.com, img1.wsimg.com, http2.mlstatic.com, tiktok.com, images.autotrader.com, img.memurlar.net, renebates.com, lookaside.fbsbx.com, static01.nyt.com, s1.dmcdn.net, files2.aster.kz, wrleiloes.com.br
+  Evidence checked: 2026-09-24T03:08:13.352Z
+IMG-021.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: cdcssl.ibsrv.net, racv.com.au, thumb.wikimedia.org, c0.carsie.ie, kbb.com, images.craigslist.org, mapabc.com, media.drive.com.au, edmunds.com, v.wpimg.pl, avatars.avto.ru, upload.wikimedia.org, travel.willer.co.jp, motorwagon.co, lookaside.fbsbx.com, edge.dealerstudio.com.au, static0.carbuzzimages.com, thedrive.com
+  Evidence checked: 2026-09-24T00:23:47.075Z
+IMG-022.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: assets.adac.de, media.lrytas.lt, nerdwallet.com, agrinionews.gr, dhs.gov, oeamtc.at, brs.dk, media.licdn.com, img.ltn.com.tw, verywellhealth.com, assets3.cbsnewsstatic.com, media.tag24.de, machine.strabag.com, cdn.polovniautomobili.com, static.themoscowtimes.com, cdn.bsky.app, infobae.com
+  Evidence checked: 2026-09-24T21:48:10.079Z
+IMG-023.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: lookaside.fbsbx.com, i.ebayimg.com, cdn-ak.f.st-hatena.com, nairaland.com, cvis.iaai.com, cdn05.carsforsale.com, images.sca.auction, pieseauto.ro, images.autotrader.com, s3-media0.fl.yelpcdn.com, avatars.avto.ru, auctioneersoftware.s3.us-east-1.amazonaws.com, image.ksldigital.com, http2.mlstatic.com
+  Evidence checked: 2026-09-24T02:32:35.109Z
+IMG-024.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: listings-prod.tcimg.net, cdnwine.diario1.com, cs.copart.com, bidfax.info, edmunds.com, lookaside.instagram.com, i.ytimg.com, img1.wsimg.com, http2.mlstatic.com, tiktok.com, images.autotrader.com, img.memurlar.net, renebates.com, lookaside.fbsbx.com, static01.nyt.com, s1.dmcdn.net, files2.aster.kz, wrleiloes.com.br
+  Evidence checked: 2026-09-24T03:08:13.352Z
+IMG-025.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: media.donedeal.ie, ireland.apollo.olxcdn.com, lookaside.fbsbx.com, i.ytimg.com, lotimages.co.uk, avatars.avto.ru, cdn.polovniautomobili.com, s9.auto.drom.ru, cdn.autotrack.nl, images.dbastatic.dk, images.autouncle.com, preview.redd.it, cdn.autowereld.nl, img4.auto.cz, ichef.bbci.co.uk, img.hasznaltautocdn.com
+  Evidence checked: 2026-09-25T18:39:55.065Z
+IMG-026.jpg | cache | 0 | 1 | 20 | 15 | 0 | 0
+  Domains: youtube.com, us.amazon.com, marchomecenter.com, amazon.com, enrichfin.com, walmart.com, homedepot.com, davidsstor.com, facebook.com, lookaside.fbsbx.com, tg24.sky.it, ichef.bbci.co.uk, automedia.investor.bg, img.buzzfeed.com, denverpost.com, ewscripps.brightspotcdn.com, i0.wp.com, estadao.com.br, dimages2.gazzettaobjects.it, lookaside.instagram.com, photos.tf1info.fr, theobjective.com, weather.gov, usatoday.com, tiktok.com, static.ukrinform.com, citynews.com.au
+  Evidence checked: 2026-09-24T03:04:57.136Z
+IMG-027.jpg | cache | 0 | 0 | 19 | 0 | 0 | 0
+  Domains: jalopnik.com, carbrain.com, quadis.s3.amazonaws.com, i.redd.it, lookaside.instagram.com, auction.nigeriatradehub.gov.ng, tiktok.com, s3-media0.fl.yelpcdn.com, paslaugos-img.dgn.lt, i.ytimg.com, briansdailyexposure.files.wordpress.com, lookaside.fbsbx.com, cf-images.us-east-1.prod.boltdns.net
+  Evidence checked: 2026-09-24T02:32:35.212Z
+IMG-028.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: cdn.prod.website-files.com, i.ytimg.com, vin.drom.ru, preview.redd.it, cs.copart.com, grandcar.ua, vis.iaai.com, platform.cstatic-images.com, images.sca.auction, us1-photo.nextdoor.com, personalinjuryclaimsuk.org.uk, advice.co.uk, cdn.nawilebi.ge, newportdispatch.com, avatars.avto.ru
+  Evidence checked: 2026-09-23T21:35:42.842Z
+IMG-029.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: upload.wikimedia.org, lookaside.instagram.com, lookaside.fbsbx.com, cdn.rnudah.com, avatars.avto.ru, i0.sinaimg.cn, cache2.pakwheels.com, img-ap-2.trovit.com, images10.gaadi.com, imgd.aeplcdn.com, static.motortrader.com.my, img.gaadibazaar.in, i.imgur.com, opensooq-imagesv2.os-cdn.com
+  Evidence checked: 2026-09-24T21:49:32.737Z
+IMG-030.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: upload.wikimedia.org, img.sparknews.funkemedien.de, onemotoring.lta.gov.sg, toronto.ca, karlsruhe.de, clamart.fr, rac.co.uk, cdn8.futura-sciences.com, interieur.gouv.fr, lookaside.instagram.com, tiktok.com, s1.15min.lt, researchgate.net, p16-common-sign.tiktokcdn-us.com, media.daft.ie, lookaside.fbsbx.com, citynews-chietitoday.stgy.ovh, cegelec-dunkerque.com, nem-tr.cz
+  Evidence checked: 2026-09-24T21:48:10.118Z
+IMG-031.jpg | cache | 1 | 0 | 20 | 8 | 0 | 1
+  Domains: lookaside.fbsbx.com, youtube.com, facebook.com, pbs.twimg.com, cdn.auto-swiat.pl, volcano.si.edu, a.storyblok.com, images.craigslist.org, consumer-guidance.com, s3-media0.fl.yelpcdn.com, preview.redd.it, cdn.unitycms.io, cdn.bsky.app, aaa.com, i.redd.it, idf.il, ocdn.eu, upload.wikimedia.org, cdn4.explainthatstuff.com, images.theconversation.com
+  Evidence checked: 2026-09-24T02:26:44.562Z
+IMG-032.jpg | cache | 2 | 0 | 20 | 15 | 0 | 2
+  Domains: upload.wikimedia.org, thumb.wikimedia.org, youtube.com, facebook.com, de.wikipedia.org, commons.wikimedia.org, weser-kurier.de, mz.de, wikiwand.com, schrauberprofi.com, instagram.com, motusmagazin.de, c0.carsie.ie, d19-a.sdn.cz, images.nettiauto.com, lookaside.instagram.com, images.dbastatic.dk, img.classistatic.de, adac-nordbayern.de, image-resize.meinestadt.de, img.gumtree.com, image.hmn.com, tiktok.com, quattroruote.it, lookaside.fbsbx.com
+  Evidence checked: 2026-09-25T18:39:56.909Z
+IMG-033.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: listings-prod.tcimg.net, cdnwine.diario1.com, cs.copart.com, bidfax.info, edmunds.com, lookaside.instagram.com, img1.wsimg.com, i.ytimg.com, http2.mlstatic.com, tiktok.com, images.autotrader.com, files2.aster.kz, lookaside.fbsbx.com, renebates.com, img.memurlar.net, avatars.avto.ru, wrleiloes.com.br
+  Evidence checked: 2026-09-24T03:08:13.368Z
+IMG-034.jpg | cache | 0 | 2 | 20 | 16 | 0 | 0
+  Domains: instagram.com, youtube.com, facebook.com, bid.cars, youglish.com, dictionaryfirst.com, autopase.lv, frenchdictionary.com, i.ss.lv, mercury.bid.cars, trademe.tmcdn.co.nz, image.hmn.com, i.ebayimg.com, upload.wikimedia.org, img.classistatic.de, lookaside.fbsbx.com, image-resize.meinestadt.de, njuskalo.hr, bahamaslocal.com, cdn0.bodas.net, preview.redd.it, img.gumtree.com, thumb.wikimedia.org, images.prismic.io
+  Evidence checked: 2026-09-25T18:39:51.077Z
+IMG-035.jpg | cache | 0 | 0 | 20 | 0 | 0 | 0
+  Domains: capitalgazette.com, scotscape.co.uk, birdsoutsidemywindow.org, dynamic-media-cdn.tripadvisor.com, images.squarespace-cdn.com, i.ytimg.com, static.slobodnadalmacija.hr, imagesv2.fnaim.fr, images.ctfassets.net, wwf.at, tiktok.com, thorpetrees.com, city.himeji.lg.jp, photos-a.propertyimages.ie, citynews-vicenzatoday.stgy.ovh, img.atlasobscura.com, muurtuin.be, verein-stadtteilarbeit.de
+  Evidence checked: 2026-09-24T03:08:03.631Z
+IMG-036.jpg | cache | 0 | 2 | 20 | 10 | 0 | 0
+  Domains: reddit.com, youtube.com, instagram.com, sadasd22edasasss-08.desco-pontos-naoresponder.tecnologia.ws, allaboutauto.quora.com, universe.roboflow.com, facebook.com, source.roboflow.com, i.ytimg.com, s7d2.scene7.com, pbs.twimg.com, volcano.si.edu, statics.cedscdn.it, lookaside.instagram.com, static01.nyt.com, furche.at, oeamtc.at, media.licdn.com, i.guim.co.uk, rac.co.uk, images.caxton.co.za, rankomat.pl, ichef.bbci.co.uk, tvn.pl, m.netinfo.bg, img.img-cdn.yle.fi, bmg-images.forward-publishing.io, images.ilpiccolo.it, gray-khnl-prod.gtv-cdn.com
+  Evidence checked: 2026-09-25T18:39:58.038Z
+
+TOP DOMAINS (ranked by distinct byte hashes, with photo counts)
+lookaside.fbsbx.com: 20 unique images, 24 photo files
+lookaside.instagram.com: 15 unique images, 19 photo files
+tiktok.com: 15 unique images, 18 photo files
+upload.wikimedia.org: 14 unique images, 17 photo files
+youtube.com: 12 unique images, 15 photo files
+facebook.com: 11 unique images, 14 photo files
+i.ytimg.com: 11 unique images, 14 photo files
+avatars.avto.ru: 9 unique images, 10 photo files
+i.redd.it: 7 unique images, 7 photo files
+preview.redd.it: 7 unique images, 8 photo files
+commons.wikimedia.org: 6 unique images, 8 photo files
+instagram.com: 6 unique images, 8 photo files
+media.licdn.com: 6 unique images, 7 photo files
+s3-media0.fl.yelpcdn.com: 6 unique images, 6 photo files
+thumb.wikimedia.org: 6 unique images, 8 photo files
+http2.mlstatic.com: 5 unique images, 7 photo files
+img.classistatic.de: 5 unique images, 7 photo files
+cs.copart.com: 4 unique images, 6 photo files
+edmunds.com: 4 unique images, 6 photo files
+ichef.bbci.co.uk: 4 unique images, 5 photo files
+
+BYTE-IDENTICAL GROUPS (SHA-256)
+IMG-003.jpg, IMG-032.jpg | d0367ab6d847d7499a055700566457c479f572f2886ae7134d8e3ec7a8235b50
+IMG-004.jpg, IMG-033.jpg | f48d8d960c00587600c411e68aff0b516ef361ae69509ff8a413e39ebf9a0404
+IMG-011.jpg, IMG-034.jpg | e31c4d86f4cf1014b1e96ba64daf837b00c535f285888ba85ac8509393ca1f8c
+IMG-017.jpg, IMG-018.jpg | 5178346b9f7916d84d58bb91af224ed3c31baa698be21896f998ed3352c52d0e
+IMG-020.jpg, IMG-024.jpg | d541c3baf402f9e46b972ee341599644f0256e3b7a9e5b0955e09e0c991379a2
+
+NEAR-DUPLICATE CANDIDATES (different bytes; dHash distance <= 6)
+None at the current threshold.
+
+DISTANCE HISTOGRAM (all 630 unordered file pairs, including byte-identical pairs)
+ 0: 5
+ 1: 0
+ 2: 0
+ 3: 0
+ 4: 0
+ 5: 0
+ 6: 0
+ 7: 0
+ 8: 0
+ 9: 0
+10: 0
+11: 0
+12: 0
+13: 0
+14: 0
+15: 0
+16: 1
+17: 0
+18: 0
+19: 2
+20: 2
+21: 2
+22: 3
+23: 9
+24: 24
+25: 18
+26: 38
+27: 44
+28: 38
+29: 32
+30: 50
+31: 52
+32: 64
+33: 48
+34: 40
+35: 36
+36: 31
+37: 35
+38: 16
+39: 24
+40: 6
+41: 5
+42: 4
+43: 1
+44: 0
+45: 0
+46: 0
+47: 0
+48: 0
+49: 0
+50: 0
+51: 0
+52: 0
+53: 0
+54: 0
+55: 0
+56: 0
+57: 0
+58: 0
+59: 0
+60: 0
+61: 0
+62: 0
+63: 0
+64: 0
+
+PHOTOS WITH NON-STOCK FULL MATCHES
+IMG-003.jpg: 2
+IMG-005.jpg: 4
+IMG-010.jpg: 5
+IMG-012.jpg: 1
+IMG-016.jpg: 1
+IMG-017.jpg: 6
+IMG-018.jpg: 6
+IMG-031.jpg: 1
+IMG-032.jpg: 2
+
+Use the JSON allPairDistances to examine any proposed dHash threshold. Visually review candidates before changing the team's config.
