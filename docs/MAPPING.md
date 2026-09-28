@@ -2,6 +2,8 @@
 
 Source: the team's manually completed data/mapping.json. Structural validation passed; human visual review establishes correctness.
 
+Validation on 2026-09-28: `npm run check-mapping` passed — 18 claims, two distinct photos each, and all 36 reference photos used exactly once.
+
 | Claim ID | Claimant | Narrative | Photo 1 | Photo 2 |
 | --- | --- | --- | --- | --- |
 | MI-10234 | Sarah Chen | Rear-ended at a red light on Legacy Dr. Other driver admitted fault at the scene. | IMG-010.jpg | IMG-013.jpg |

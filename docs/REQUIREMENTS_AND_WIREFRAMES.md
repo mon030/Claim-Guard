@@ -77,7 +77,7 @@ For the course demo, the team should show a valid 18-to-36 mapping, a real one-p
 
 ## Implemented interface screenshots
 
-These are actual captures of the [deployed ClaimGuard app](https://claim-guard-mu.vercel.app/) on September 25, 2026, not mockups. The existing-claim and result views show MI-10237 (Devon Price). The result used cached Vision evidence; no Google Form was submitted. Screenshots are cropped to the relevant interface sections without changing their content.
+Figures 1–5 are actual captures of the [deployed ClaimGuard app](https://claim-guard-mu.vercel.app/) and the signed-in Google Form on September 25–28, 2026, not mockups. Figures 1 and 3 show MI-10237 (Devon Price); Figure 4 shows MI-10236 (Ana Torres). Those production app results used cached Vision evidence. Figure 6 is a deliberately simulated failure in isolated local development, not production. No Google Form was submitted. Screenshots are cropped to the relevant sections; the Form account address is redacted for privacy.
 
 ### Figure 1 — Existing claim selection and mapped photos
 
@@ -102,3 +102,25 @@ These are actual captures of the [deployed ClaimGuard app](https://claim-guard-m
 ### Figure 3c — Decision and Form handoff
 
 ![Production app showing the Auto-approve banner and human-only form actions](images/claim-result-decision.png)
+
+### Figure 4 — Escalate example: MI-10236 (Ana Torres)
+
+The production app escalated this $4,100 claim because both mapped photos exactly match photos assigned to MI-10250. The same amount and similar narrative appear only as a note for review, not as the escalation trigger.
+
+![Production app showing Ana Torres's Escalate decision, exact cross-claim photo matches, and human-only Form handoff](images/claim-ana-escalate.png)
+
+### Figure 5 — Pre-filled Google Form in Edge
+
+This is the real signed-in Form reached from Ana's result. The claim ID, claimant, and photo lookup summary are pre-filled; the Form also selected Escalate below the captured viewport. The email address shown by Google is redacted in this image, and the email confirmation was left unchecked. A human must complete that step and click Submit.
+
+![Signed-in Google Form in Edge with Ana Torres claim fields pre-filled and account email redacted](images/claim-form-edge-redacted.png)
+
+### Figure 6 — Deliberately simulated unavailable web check and E4 escalation
+
+On September 28, an isolated local run used an invalid Vision API key. Google returned HTTP 400 with “API key not valid,” so both photo checks for MI-10237 were genuinely unavailable and the guardrail escalated. The evidence-card alert and decision below are two cropped views from that same run, not a naturally occurring dataset failure or a production issue. Re-running MI-10237 against production with its real key returned Auto-approve (Figure 3c).
+
+![Local simulated E4 evidence card showing Web check unavailable, HTTP 400, and the human-review warning](images/claim-e4-evidence-local.png)
+
+### Figure 6 (continued) — E4 decision for the same local run
+
+![Same local simulated E4 run showing the Escalate banner and unavailable-web-check reasons](images/claim-e4-decision-local.png)
