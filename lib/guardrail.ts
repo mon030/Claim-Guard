@@ -115,7 +115,7 @@ export function decide(
     for (const p of photosWithMatches) {
       const m = p.crossClaimMatches[0];
       reasons.push(
-        `${p.filename} is a ${m.matchType} match (distance ${m.distance}) of ${m.matchedFilename} ` +
+        `${p.filename} (${m.matchType} match, distance ${m.distance}) matches ${m.matchedFilename} ` +
           `from claim ${m.matchedClaimId} (${m.matchedClaimDate}).`
       );
     }
@@ -125,7 +125,7 @@ export function decide(
     const partialReasons = photosWithMatches.map((p) => {
       const m = p.crossClaimMatches[0];
       return (
-        `${p.filename} is a ${m.matchType} match (distance ${m.distance}) of ${m.matchedFilename} ` +
+        `${p.filename} (${m.matchType} match, distance ${m.distance}) matches ${m.matchedFilename} ` +
         `from claim ${m.matchedClaimId} (${m.matchedClaimDate}); the claim's other photo is unique.`
       );
     });

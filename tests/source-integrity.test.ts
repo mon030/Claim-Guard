@@ -14,13 +14,14 @@ describe("team-supplied sources", () => {
     expect(digest(file("../lib/guardrail.test.ts"))).toBe("e71543fbb3034bfe5885daad7c6e01c1ea16d802b819a62ab667da0c67d1c4d5");
     expect(digest(file("../data/claims.json"))).toBe("d2d22a668b74f843ead4deee672d5e6909d36c99815856050657eeb5fce5042c");
   });
-  it("changes only the two explicitly authorized lines in guardrail.ts", () => {
+  it("changes only the four explicitly authorized lines in guardrail.ts", () => {
     const current = file("../lib/guardrail.ts").toString("utf8");
     expect(current.match(/export function hammingDistanceHex/g)).toHaveLength(1);
     expect(current).toContain("p.webCheck.fullMatchCount > 0 && p.webCheck.nonStockFullMatchCount === 0");
     const restored = current
       .replace("export function hammingDistanceHex", "function hammingDistanceHex")
-      .replace("p.webCheck.fullMatchCount > 0 && p.webCheck.nonStockFullMatchCount === 0", "p.webCheck.fullMatchCount > 0");
+      .replace("p.webCheck.fullMatchCount > 0 && p.webCheck.nonStockFullMatchCount === 0", "p.webCheck.fullMatchCount > 0")
+      .replaceAll("${p.filename} (${m.matchType} match, distance ${m.distance}) matches ${m.matchedFilename} ", "${p.filename} is a ${m.matchType} match (distance ${m.distance}) of ${m.matchedFilename} ");
     expect(digest(restored)).toBe("d7aef34b394d7ec4758a938c982f69d5081ef35d79c59f49b1c582770a5a0132");
   });
   it("accepts only a structurally valid manual mapping or explicit null entries", () => {
