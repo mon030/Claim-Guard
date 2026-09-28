@@ -48,6 +48,15 @@ export function ClaimGuardApp() {
       </div>
     </form>
     <Results decision={app.decision} photos={app.photos} code={app.code} busy={app.busy} llmConfigured={Boolean(app.config?.llmConfigured)} explanation={app.explanation} rerun={app.rerun} copy={app.copySummary} explain={app.explain} print={app.printResults} startOver={app.startOver} claimLabel={app.claimLabel} />
-    <footer className="border-t border-base-300 pt-5 text-xs text-base-content/70">Meridian Insurance is fictional. This university-course prototype assists review; it does not establish fraud or replace an adjuster.</footer>
+    <footer className="footer rounded-box border-t border-base-300 bg-base-100 p-5 text-sm text-base-content/75 sm:footer-horizontal">
+      <section>
+        <h2 className="footer-title">ClaimGuard</h2>
+        <p className="max-w-sm">Meridian Insurance is fictional. This university-course prototype assists review; it does not establish fraud or replace an adjuster.</p>
+      </section>
+      <section>
+        <h2 className="footer-title">Project team</h2>
+        <p className="max-w-sm leading-6">Tommy Huang · Samuel Rivas · Micah Martin · Porter Haldiman · Nakayi Simoyi</p>
+      </section>
+    </footer>
   </main></div><Toasts items={app.toasts} dismiss={app.dismissToast} /></div>;
 }
