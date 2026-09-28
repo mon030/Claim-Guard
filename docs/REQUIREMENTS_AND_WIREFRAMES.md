@@ -117,7 +117,7 @@ This is the real signed-in Form reached from Ana's result. The claim ID, claiman
 
 ### Figure 6 — Deliberately simulated unavailable web check and E4 escalation
 
-On September 28, an isolated local run used an invalid Vision API key. Google returned HTTP 400 with “API key not valid,” so both photo checks for MI-10237 were genuinely unavailable and the guardrail escalated. The evidence-card alert and decision below are two cropped views from that same run, not a naturally occurring dataset failure or a production issue. Re-running MI-10237 against production with its real key returned Auto-approve (Figure 3c).
+On September 28, an isolated local run used an invalid Vision API key. Google returned HTTP 400 with “API key not valid,” so both photo checks for MI-10237 were genuinely unavailable and the guardrail escalated. The evidence-card alert and decision below are two cropped views from that same run, not a naturally occurring dataset failure or a production issue. Re-running MI-10237 in production with its previously cached successful Vision evidence returned Auto-approve (Figure 3c); the comparison did not make a new paid Vision call.
 
 ![Local simulated E4 evidence card showing Web check unavailable, HTTP 400, and the human-review warning](images/claim-e4-evidence-local.png)
 
