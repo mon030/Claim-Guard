@@ -20,7 +20,8 @@ export function ClaimPicker({ claims, selectedId, disabled, choose }: {
     <label {...getLabelProps()}>Reference claim</label>
     <div className="relative w-full"><input {...getInputProps({ disabled })} className="input w-full pr-12" placeholder="Search claim ID or claimant name" />
       <button {...getToggleButtonProps({ disabled, type: "button", "aria-label": "Show claims" })} className="btn btn-ghost btn-circle btn-sm absolute right-2 top-1/2 -translate-y-1/2">▾</button></div>
-    <ul {...getMenuProps()} className={`menu menu-vertical absolute inset-x-0 top-full z-20 w-full min-w-0 rounded-box border border-base-300 bg-base-100 shadow-lg ${isOpen ? "max-h-72 overflow-y-auto overflow-x-hidden" : "hidden"}`}>
+    {/* daisyUI menus wrap by default; a bounded claim list must scroll in one column. */}
+    <ul {...getMenuProps()} className={`menu menu-vertical flex-nowrap absolute inset-x-0 top-full z-20 w-full min-w-0 rounded-box border border-base-300 bg-base-100 shadow-lg ${isOpen ? "max-h-72 overflow-y-auto overflow-x-hidden overscroll-contain" : "hidden"}`}>
       {isOpen && items.map((item, index) => <li key={item.claimId} {...getItemProps({ item, index })} className="w-full min-w-0">
         <span className={`block w-full min-w-0 whitespace-normal break-words ${highlightedIndex === index ? "menu-active" : ""} ${item.unavailableReason ? "opacity-50" : ""}`}>
           {label(item)}{item.unavailableReason ? ` — ${item.unavailableReason}` : ""}
